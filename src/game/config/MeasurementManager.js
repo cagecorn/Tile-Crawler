@@ -16,7 +16,10 @@ export class MeasurementManager {
                 height: 110
             },
             camera: {
-                defaultZoom: 0.09
+                defaultZoom: 0.18,
+                minZoom: 0.08,
+                maxZoom: 0.35,
+                zoomStep: 0.02
             }
         };
     }
@@ -63,6 +66,10 @@ export class MeasurementManager {
 
     getDefaultZoom() {
         return this.units.camera.defaultZoom;
+    }
+
+    getCameraConfig() {
+        return this.units.camera;
     }
 }
 

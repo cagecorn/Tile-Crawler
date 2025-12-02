@@ -21,6 +21,7 @@ export class Game extends Scene
         const generator = new DungeonGenerator(measurementManager);
         const dungeon = generator.generate();
         const tileSize = measurementManager.getTileSize();
+        const cameraConfig = measurementManager.getCameraConfig();
         this.dungeon = dungeon;
         this.tileSize = tileSize;
 
@@ -50,9 +51,10 @@ export class Game extends Scene
         this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
         this.cameras.main.setBackgroundColor(0x000000);
         this.cameras.main.centerOn(worldWidth / 2, worldHeight / 2);
-        this.cameras.main.setZoom(measurementManager.getDefaultZoom());
+        this.cameras.main.setZoom(cameraConfig.defaultZoom);
 
         this.enableCameraDrag();
+        this.enableCameraZoom(cameraConfig);
         this.setupPlayer();
         this.registerInput();
     }
@@ -67,6 +69,21 @@ export class Game extends Scene
 
             camera.scrollX -= (pointer.x - pointer.prevPosition.x) / camera.zoom;
             camera.scrollY -= (pointer.y - pointer.prevPosition.y) / camera.zoom;
+        });
+    }
+
+    enableCameraZoom (cameraConfig)
+    {
+        const camera = this.cameras.main;
+        const { minZoom, maxZoom, zoomStep } = cameraConfig;
+
+        this.input.on('wheel', (_pointer, _gameObjects, _deltaX, deltaY) => {
+            const zoomDelta = deltaY > 0 ? -zoomStep : zoomStep;
+            const newZoom = Math.min(maxZoom, Math.max(minZoom, camera.zoom + zoomDelta));
+
+            if (newZoom !== camera.zoom) {
+                camera.setZoom(newZoom);
+            }
         });
     }
 
