@@ -1,4 +1,4 @@
-import { measurementManager } from '../config/MeasurementManager';
+import { measurementManager } from '../config/MeasurementManager.js';
 
 const TILE_WALL = 'wall';
 const TILE_FLOOR = 'floor';
