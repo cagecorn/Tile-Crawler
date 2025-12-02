@@ -1,6 +1,6 @@
-import { Boot } from './scenes/Boot';
-import { Game as MainGame } from './scenes/Game';
-import { Preloader } from './scenes/Preloader';
+import { Boot } from './scenes/Boot.js';
+import { Game as MainGame } from './scenes/Game.js';
+import { Preloader } from './scenes/Preloader.js';
 import { AUTO, Game } from 'phaser';
 
 //  Find out more information about the Game Config at:

@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
-import { DungeonGenerator, TileType } from '../dungeon/DungeonGenerator';
-import { measurementManager } from '../config/MeasurementManager';
+import { DungeonGenerator, TileType } from '../dungeon/DungeonGenerator.js';
+import { measurementManager } from '../config/MeasurementManager.js';
 
 export class Game extends Scene
 {
