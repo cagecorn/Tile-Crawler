@@ -2,7 +2,9 @@ const DEFAULT_STATS = {
     health: 120,
     attack: 12,
     defense: 8,
-    mobility: 4
+    mobility: 4,
+    actionSpeed: 8,
+    sightRange: 8
 };
 
 export class StatManager {
@@ -17,7 +19,9 @@ export class StatManager {
             maxHealth: merged.health,
             attack: merged.attack,
             defense: merged.defense,
-            mobility: merged.mobility
+            mobility: merged.mobility,
+            actionSpeed: merged.actionSpeed,
+            sightRange: merged.sightRange
         };
     }
 }

@@ -9,7 +9,9 @@ export class ClassManager {
                     health: 160,
                     attack: 16,
                     defense: 12,
-                    mobility: 4
+                    mobility: 4,
+                    actionSpeed: 10,
+                    sightRange: 10
                 }
             }
         };

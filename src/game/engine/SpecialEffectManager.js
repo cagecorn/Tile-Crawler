@@ -28,6 +28,15 @@ export class SpecialEffectManager {
         healthBar.syncPosition();
     }
 
+    stopTracking(unit) {
+        const healthBar = this.healthBars.get(unit);
+        if (!healthBar) {
+            return;
+        }
+        healthBar.destroy();
+        this.healthBars.delete(unit);
+    }
+
     update() {
         this.healthBars.forEach((healthBar, unit) => {
             const { current, max } = unit.getHealthState();
