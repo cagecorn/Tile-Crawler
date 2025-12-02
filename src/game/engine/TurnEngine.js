@@ -40,14 +40,20 @@ export class TurnEngine {
         }
 
         this.resolving = true;
-        const actions = [...this.pendingActions.entries()].map(([unit, action]) => ({ unit, action }));
-        this.pendingActions.clear();
-        const orderedActions = this.actionOrderEngine?.orderActions(actions) ?? actions;
 
-        for (const { unit, action } of orderedActions) {
-            await unit.performAction(action);
+        try {
+            while (this.pendingActions.size > 0) {
+                const actions = [...this.pendingActions.entries()].map(([unit, action]) => ({ unit, action }));
+                this.pendingActions.clear();
+                const orderedActions = this.actionOrderEngine?.orderActions(actions) ?? actions;
+
+                for (const { unit, action } of orderedActions) {
+                    await unit.performAction(action);
+                }
+            }
+        } finally {
+            this.resolving = false;
         }
-        this.resolving = false;
     }
 
     getUnitAt(tile) {
