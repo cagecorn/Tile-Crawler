@@ -26,6 +26,7 @@ export class DungeonGenerator {
         const grid = Array.from({ length: height }, () => Array.from({ length: width }, () => TILE_WALL));
         const rooms = this.createRooms(grid);
         this.connectRooms(grid, rooms);
+        this.addWanderingTunnels(grid);
 
         return {
             tiles: grid,
@@ -72,7 +73,7 @@ export class DungeonGenerator {
 
         const graphEdges = this.buildCompleteGraph(rooms);
         const mst = this.primMST(graphEdges, rooms.length);
-        const bonusEdges = graphEdges.filter(() => Math.random() < 0.15);
+        const bonusEdges = graphEdges.filter(() => Math.random() < 0.3);
 
         [...mst, ...bonusEdges].forEach((edge) => {
             const roomA = rooms[edge[0]];
@@ -130,17 +131,49 @@ export class DungeonGenerator {
 
     carveCorridor(grid, roomA, roomB) {
         const corridorWidth = this.measurements.getCorridorWidth();
-        const halfWidth = Math.floor(corridorWidth / 2);
         const centerA = this.roomCenter(roomA);
         const centerB = this.roomCenter(roomB);
         const horizontalFirst = Math.random() > 0.5;
 
+        const pathPoints = this.buildCorridorPath(centerA, centerB, horizontalFirst);
+
+        for (let i = 0; i < pathPoints.length - 1; i++) {
+            this.carveSegment(grid, pathPoints[i], pathPoints[i + 1], corridorWidth);
+        }
+    }
+
+    buildCorridorPath(centerA, centerB, horizontalFirst) {
+        const bendVariance = 6;
+        const path = [centerA];
+
         if (horizontalFirst) {
-            this.fillArea(grid, Math.min(centerA.x, centerB.x), centerA.y - halfWidth, Math.abs(centerA.x - centerB.x) + 1, corridorWidth, TILE_FLOOR);
-            this.fillArea(grid, centerB.x - halfWidth, Math.min(centerA.y, centerB.y), corridorWidth, Math.abs(centerA.y - centerB.y) + 1, TILE_FLOOR);
+            const midX = Math.floor((centerA.x + centerB.x) / 2 + randomInRange(-bendVariance, bendVariance));
+            const offsetY = Math.floor((centerA.y + centerB.y) / 2 + randomInRange(-bendVariance, bendVariance / 2));
+            path.push({ x: midX, y: centerA.y });
+            path.push({ x: midX, y: offsetY });
+            path.push({ x: centerB.x, y: offsetY });
         } else {
-            this.fillArea(grid, centerA.x - halfWidth, Math.min(centerA.y, centerB.y), corridorWidth, Math.abs(centerA.y - centerB.y) + 1, TILE_FLOOR);
-            this.fillArea(grid, Math.min(centerA.x, centerB.x), centerB.y - halfWidth, Math.abs(centerA.x - centerB.x) + 1, corridorWidth, TILE_FLOOR);
+            const midY = Math.floor((centerA.y + centerB.y) / 2 + randomInRange(-bendVariance, bendVariance));
+            const offsetX = Math.floor((centerA.x + centerB.x) / 2 + randomInRange(-bendVariance, bendVariance / 2));
+            path.push({ x: centerA.x, y: midY });
+            path.push({ x: offsetX, y: midY });
+            path.push({ x: offsetX, y: centerB.y });
+        }
+
+        path.push(centerB);
+        return path;
+    }
+
+    carveSegment(grid, start, end, corridorWidth) {
+        const halfWidth = Math.floor(corridorWidth / 2);
+        if (start.x === end.x) {
+            // vertical
+            const height = Math.abs(end.y - start.y) + 1;
+            this.fillArea(grid, start.x - halfWidth, Math.min(start.y, end.y), corridorWidth, height, TILE_FLOOR);
+        } else {
+            // horizontal
+            const width = Math.abs(end.x - start.x) + 1;
+            this.fillArea(grid, Math.min(start.x, end.x), start.y - halfWidth, width, corridorWidth, TILE_FLOOR);
         }
     }
 
@@ -159,6 +192,48 @@ export class DungeonGenerator {
                 grid[y][x] = value;
             }
         }
+    }
+
+    addWanderingTunnels(grid) {
+        const spurCount = 12;
+        for (let i = 0; i < spurCount; i++) {
+            const start = this.randomFloorCell(grid);
+            if (!start) {
+                continue;
+            }
+
+            const steps = randomInRange(4, 10);
+            let current = start;
+
+            for (let step = 0; step < steps; step++) {
+                const direction = this.randomDirection();
+                const next = { x: current.x + direction.x * randomInRange(2, 4), y: current.y + direction.y * randomInRange(2, 4) };
+                this.carveSegment(grid, current, next, this.measurements.getCorridorWidth());
+                current = next;
+            }
+        }
+    }
+
+    randomDirection() {
+        const directions = [
+            { x: 1, y: 0 },
+            { x: -1, y: 0 },
+            { x: 0, y: 1 },
+            { x: 0, y: -1 }
+        ];
+        return directions[Math.floor(Math.random() * directions.length)];
+    }
+
+    randomFloorCell(grid) {
+        const attempts = 40;
+        for (let i = 0; i < attempts; i++) {
+            const x = randomInRange(1, grid[0].length - 2);
+            const y = randomInRange(1, grid.length - 2);
+            if (grid[y][x] === TILE_FLOOR) {
+                return { x, y };
+            }
+        }
+        return null;
     }
 }
 
