@@ -3,6 +3,10 @@ import { DungeonGenerator, TileType } from '../dungeon/DungeonGenerator.js';
 import { measurementManager } from '../config/MeasurementManager.js';
 import { TurnEngine } from '../engine/TurnEngine.js';
 import { AnimationEngine } from '../engine/AnimationEngine.js';
+import { OffscreenEngine } from '../engine/OffscreenEngine.js';
+import { SpecialEffectManager } from '../engine/SpecialEffectManager.js';
+import { ClassManager } from '../managers/ClassManager.js';
+import { StatManager } from '../managers/StatManager.js';
 import { PlayerUnit } from '../units/Player.js';
 
 export class Game extends Scene
@@ -22,6 +26,10 @@ export class Game extends Scene
 
         this.animationEngine = new AnimationEngine(this);
         this.turnEngine = new TurnEngine();
+        this.offscreenEngine = new OffscreenEngine(this);
+        this.specialEffectManager = new SpecialEffectManager(this, this.offscreenEngine);
+        this.statManager = new StatManager();
+        this.classManager = new ClassManager(this.statManager);
 
         const mapLayer = this.add.layer();
         for (let y = 0; y < dungeon.height; y++) {
@@ -65,7 +73,15 @@ export class Game extends Scene
     setupPlayer()
     {
         const spawnTile = this.pickSpawnTile();
-        this.player = new PlayerUnit(this, spawnTile, this.tileSize, this.animationEngine, this.dungeon);
+        this.player = new PlayerUnit(
+            this,
+            spawnTile,
+            this.tileSize,
+            this.animationEngine,
+            this.dungeon,
+            this.classManager,
+            this.specialEffectManager
+        );
         this.turnEngine.registerUnit(this.player);
         this.cameras.main.startFollow(this.player.sprite, false, 0.12, 0.12);
     }
@@ -117,6 +133,13 @@ export class Game extends Scene
             return { type: 'move', dx: 0, dy: 1 };
         default:
             return null;
+        }
+    }
+
+    update()
+    {
+        if (this.specialEffectManager) {
+            this.specialEffectManager.update();
         }
     }
 }
