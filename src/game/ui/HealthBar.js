@@ -52,4 +52,8 @@ export class HealthBar {
             graphics.fillRoundedRect(padding, padding, filledWidth, innerHeight, innerHeight / 2);
         });
     }
+
+    destroy() {
+        this.layer.renderTexture.destroy();
+    }
 }

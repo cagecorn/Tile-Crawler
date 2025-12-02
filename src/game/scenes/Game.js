@@ -5,8 +5,13 @@ import { TurnEngine } from '../engine/TurnEngine.js';
 import { AnimationEngine } from '../engine/AnimationEngine.js';
 import { OffscreenEngine } from '../engine/OffscreenEngine.js';
 import { SpecialEffectManager } from '../engine/SpecialEffectManager.js';
+import { CombatEngine } from '../engine/CombatEngine.js';
+import { PathfindingEngine } from '../engine/PathfindingEngine.js';
+import { VisionEngine } from '../engine/VisionEngine.js';
+import { ActionOrderEngine } from '../engine/ActionOrderEngine.js';
 import { ClassManager } from '../managers/ClassManager.js';
 import { StatManager } from '../managers/StatManager.js';
+import { MonsterManager } from '../managers/MonsterManager.js';
 import { PlayerUnit } from '../units/Player.js';
 
 export class Game extends Scene
@@ -26,11 +31,16 @@ export class Game extends Scene
         this.tileSize = tileSize;
 
         this.animationEngine = new AnimationEngine(this);
-        this.turnEngine = new TurnEngine();
+        this.actionOrderEngine = new ActionOrderEngine();
+        this.turnEngine = new TurnEngine(this.actionOrderEngine);
         this.offscreenEngine = new OffscreenEngine(this);
         this.specialEffectManager = new SpecialEffectManager(this, this.offscreenEngine);
         this.statManager = new StatManager();
         this.classManager = new ClassManager(this.statManager);
+        this.combatEngine = new CombatEngine(this.turnEngine, this.specialEffectManager);
+        this.turnEngine.setCombatEngine(this.combatEngine);
+        this.pathfindingEngine = new PathfindingEngine(this.dungeon, this.turnEngine);
+        this.visionEngine = new VisionEngine(this.dungeon);
 
         const mapLayer = this.add.layer();
         for (let y = 0; y < dungeon.height; y++) {
@@ -56,6 +66,18 @@ export class Game extends Scene
         this.enableCameraDrag();
         this.enableCameraZoom(cameraConfig);
         this.setupPlayer();
+        this.monsterManager = new MonsterManager({
+            scene: this,
+            dungeon: this.dungeon,
+            tileSize: this.tileSize,
+            animationEngine: this.animationEngine,
+            specialEffectManager: this.specialEffectManager,
+            turnEngine: this.turnEngine,
+            statManager: this.statManager,
+            pathfindingEngine: this.pathfindingEngine,
+            visionEngine: this.visionEngine
+        });
+        this.monsterManager.spawnZombies();
         this.registerInput();
     }
 
@@ -97,9 +119,9 @@ export class Game extends Scene
             this.animationEngine,
             this.dungeon,
             this.classManager,
-            this.specialEffectManager
+            this.specialEffectManager,
+            this.turnEngine
         );
-        this.turnEngine.registerUnit(this.player);
         this.cameras.main.startFollow(this.player.sprite, false, 0.12, 0.12);
     }
 
@@ -133,6 +155,7 @@ export class Game extends Scene
             }
 
             this.turnEngine.queueAction(this.player, action);
+            this.monsterManager.planTurn(this.player);
             this.turnEngine.resolveTurn();
         });
     }

@@ -12,4 +12,22 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
+    padding: 72px 0;
+    box-sizing: border-box;
+}
+
+#game-container {
+    width: 92vw;
+    max-width: 1280px;
+    height: calc(100vh - 180px);
+    max-height: 720px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
 }
