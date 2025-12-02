@@ -29,10 +29,11 @@ export class Preloader extends Scene
 
     preload ()
     {
-        //  Load the assets for the game - Replace with your own assets
         this.load.setPath('assets');
 
         this.load.image('logo', 'logo.png');
+        this.load.image('floor-tile-1', 'images/map-tiles/floor-tile-1.png');
+        this.load.image('wall-tile-1', 'images/map-tiles/wall-tile-1.png');
     }
 
     create ()
@@ -40,7 +41,7 @@ export class Preloader extends Scene
         //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
         //  For example, you can define global animations here, so we can use them in other scenes.
 
-        //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
-        this.scene.start('MainMenu');
+        //  Jump straight into the dungeon view.
+        this.scene.start('Game');
     }
 }
