@@ -1,6 +1,9 @@
 import { Scene } from 'phaser';
 import { DungeonGenerator, TileType } from '../dungeon/DungeonGenerator.js';
 import { measurementManager } from '../config/MeasurementManager.js';
+import { TurnEngine } from '../engine/TurnEngine.js';
+import { AnimationEngine } from '../engine/AnimationEngine.js';
+import { PlayerUnit } from '../units/Player.js';
 
 export class Game extends Scene
 {
@@ -14,6 +17,11 @@ export class Game extends Scene
         const generator = new DungeonGenerator(measurementManager);
         const dungeon = generator.generate();
         const tileSize = measurementManager.getTileSize();
+        this.dungeon = dungeon;
+        this.tileSize = tileSize;
+
+        this.animationEngine = new AnimationEngine(this);
+        this.turnEngine = new TurnEngine();
 
         const mapLayer = this.add.layer();
         for (let y = 0; y < dungeon.height; y++) {
@@ -37,6 +45,8 @@ export class Game extends Scene
         this.cameras.main.setZoom(measurementManager.getDefaultZoom());
 
         this.enableCameraDrag();
+        this.setupPlayer();
+        this.registerInput();
     }
 
     enableCameraDrag ()
@@ -50,5 +60,63 @@ export class Game extends Scene
             camera.scrollX -= (pointer.x - pointer.prevPosition.x) / camera.zoom;
             camera.scrollY -= (pointer.y - pointer.prevPosition.y) / camera.zoom;
         });
+    }
+
+    setupPlayer()
+    {
+        const spawnTile = this.pickSpawnTile();
+        this.player = new PlayerUnit(this, spawnTile, this.tileSize, this.animationEngine, this.dungeon);
+        this.turnEngine.registerUnit(this.player);
+        this.cameras.main.startFollow(this.player.sprite, false, 0.12, 0.12);
+    }
+
+    pickSpawnTile()
+    {
+        if (this.dungeon.rooms.length > 0) {
+            const room = this.dungeon.rooms[0];
+            return {
+                x: Math.floor(room.x + room.width / 2),
+                y: Math.floor(room.y + room.height / 2)
+            };
+        }
+
+        for (let y = 0; y < this.dungeon.height; y++) {
+            for (let x = 0; x < this.dungeon.width; x++) {
+                if (this.dungeon.tiles[y][x] === TileType.FLOOR) {
+                    return { x, y };
+                }
+            }
+        }
+        return { x: 1, y: 1 };
+    }
+
+    registerInput()
+    {
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.input.keyboard.on('keydown', (event) => {
+            const action = this.translateKeyToAction(event.code);
+            if (!action) {
+                return;
+            }
+
+            this.turnEngine.queueAction(this.player, action);
+            this.turnEngine.resolveTurn();
+        });
+    }
+
+    translateKeyToAction(keyCode)
+    {
+        switch (keyCode) {
+        case 'ArrowLeft':
+            return { type: 'move', dx: -1, dy: 0 };
+        case 'ArrowRight':
+            return { type: 'move', dx: 1, dy: 0 };
+        case 'ArrowUp':
+            return { type: 'move', dx: 0, dy: -1 };
+        case 'ArrowDown':
+            return { type: 'move', dx: 0, dy: 1 };
+        default:
+            return null;
+        }
     }
 }

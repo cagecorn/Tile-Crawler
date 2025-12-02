@@ -2,21 +2,21 @@ export class MeasurementManager {
     constructor() {
         this.units = {
             tileSize: 512,
-            corridorWidth: 5, // 4~6 tiles for 6-player party comfort
+            corridorWidth: { min: 3, max: 4 },
             room: {
-                minWidth: 12,
-                maxWidth: 20,
-                minHeight: 12,
-                maxHeight: 20,
-                padding: 2,
-                maxRooms: 18
+                minWidth: 10,
+                maxWidth: 18,
+                minHeight: 10,
+                maxHeight: 18,
+                padding: 1,
+                maxRooms: 28
             },
             map: {
-                width: 70,
-                height: 55
+                width: 140,
+                height: 110
             },
             camera: {
-                defaultZoom: 0.12
+                defaultZoom: 0.09
             }
         };
     }
@@ -33,6 +33,10 @@ export class MeasurementManager {
                 ...this.units.map,
                 ...(partialUnits?.map ?? {})
             },
+            corridorWidth: {
+                ...this.units.corridorWidth,
+                ...(partialUnits?.corridorWidth ?? {})
+            },
             camera: {
                 ...this.units.camera,
                 ...(partialUnits?.camera ?? {})
@@ -45,7 +49,8 @@ export class MeasurementManager {
     }
 
     getCorridorWidth() {
-        return this.units.corridorWidth;
+        const { min, max } = this.units.corridorWidth;
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     getRoomConfig() {
