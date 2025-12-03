@@ -44,9 +44,8 @@ export class TurnEngine {
         this.pendingActions.clear();
         const orderedActions = this.actionOrderEngine?.orderActions(actions) ?? actions;
 
-        for (const { unit, action } of orderedActions) {
-            await unit.performAction(action);
-        }
+        const actionPromises = orderedActions.map(({ unit, action }) => unit.performAction(action));
+        await Promise.all(actionPromises);
         this.resolving = false;
     }
 

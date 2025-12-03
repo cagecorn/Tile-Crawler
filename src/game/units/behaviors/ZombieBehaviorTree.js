@@ -12,6 +12,16 @@ export class ZombieBehaviorTree {
             return null;
         }
 
+        const playerVisible = this.canSeePlayer(zombie, player);
+
+        if (!zombie.isAwake() && !playerVisible) {
+            return null;
+        }
+
+        if (playerVisible) {
+            zombie.awaken();
+        }
+
         const nodes = [
             () => this.approachPlayerNode(zombie, player),
             () => this.wanderAroundSpawn(zombie)
@@ -28,8 +38,7 @@ export class ZombieBehaviorTree {
     }
 
     approachPlayerNode(zombie, player) {
-        const sightRange = zombie.getSightRange();
-        if (!this.visionEngine.canSee(zombie.tilePosition, player.tilePosition, sightRange)) {
+        if (!this.canSeePlayer(zombie, player)) {
             return null;
         }
 
@@ -58,6 +67,11 @@ export class ZombieBehaviorTree {
         const dx = target.x - zombie.tilePosition.x;
         const dy = target.y - zombie.tilePosition.y;
         return { type: 'move', dx, dy };
+    }
+
+    canSeePlayer(zombie, player) {
+        const sightRange = zombie.getSightRange();
+        return this.visionEngine.canSee(zombie.tilePosition, player.tilePosition, sightRange);
     }
 
     shuffledNeighbors(origin) {

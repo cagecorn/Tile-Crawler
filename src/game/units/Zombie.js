@@ -16,6 +16,15 @@ export class ZombieUnit extends Unit {
         });
 
         this.spawnAnchor = { ...startTile };
+        this.awake = false;
+    }
+
+    awaken() {
+        this.awake = true;
+    }
+
+    isAwake() {
+        return this.awake;
     }
 }
 
