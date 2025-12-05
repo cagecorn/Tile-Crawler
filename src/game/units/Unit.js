@@ -11,7 +11,8 @@ export class Unit {
         turnEngine,
         textureKey,
         stats,
-        faction
+        faction,
+        name
     }) {
         this.scene = scene;
         this.tileSize = tileSize;
@@ -21,6 +22,7 @@ export class Unit {
         this.turnEngine = turnEngine;
         this.stats = stats;
         this.faction = faction;
+        this.name = name ?? textureKey;
         this.tilePosition = { ...startTile };
         this.currentHealth = this.stats.health;
         this.maxHealth = this.stats.maxHealth;
@@ -30,6 +32,8 @@ export class Unit {
         const worldPosition = this.animationEngine.tileToWorldPosition(startTile, tileSize);
         this.sprite = this.scene.add.image(worldPosition.x, worldPosition.y, textureKey);
         this.sprite.setDepth(10);
+
+        this.specialEffectManager?.attachShadow(this, { offset: this.sprite.displayHeight / 2 - this.tileSize * 0.15 });
 
         if (this.turnEngine) {
             this.turnEngine.registerUnit(this);
@@ -60,6 +64,10 @@ export class Unit {
             current: this.currentHealth,
             max: this.maxHealth
         };
+    }
+
+    getName() {
+        return this.name;
     }
 
     getManaState() {
@@ -102,6 +110,7 @@ export class Unit {
         if (this.specialEffectManager) {
             this.specialEffectManager.stopTracking(this);
         }
+        this.scene?.events.emit('unit-died', { unit: this, tile: { ...this.tilePosition } });
         if (this.sprite) {
             this.sprite.destroy();
         }
