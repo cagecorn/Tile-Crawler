@@ -5,7 +5,16 @@ const DEFAULT_STATS = {
     defense: 8,
     mobility: 4,
     actionSpeed: 8,
-    sightRange: 8
+    sightRange: 8,
+    level: 1,
+    experience: 0,
+    magicAttack: 10,
+    magicDefense: 8,
+    evasion: 5,
+    accuracy: 85,
+    actionPoints: 2,
+    movePoints: 4,
+    critChance: 10
 };
 
 export class StatManager {
@@ -24,7 +33,16 @@ export class StatManager {
             defense: merged.defense,
             mobility: merged.mobility,
             actionSpeed: merged.actionSpeed,
-            sightRange: merged.sightRange
+            sightRange: merged.sightRange,
+            level: merged.level,
+            experience: merged.experience,
+            magicAttack: merged.magicAttack,
+            magicDefense: merged.magicDefense,
+            evasion: merged.evasion,
+            accuracy: merged.accuracy,
+            actionPoints: merged.actionPoints,
+            movePoints: merged.movePoints,
+            critChance: merged.critChance
         };
     }
 }
