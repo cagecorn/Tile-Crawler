@@ -67,6 +67,7 @@ export class Game extends Scene
         this.turnEngine.setCombatEngine(this.combatEngine);
         this.pathfindingEngine = new PathfindingEngine(this.dungeon, this.turnEngine);
         this.visionEngine = new VisionEngine(this.dungeon);
+        this.turnEngine.setVisionEngine(this.visionEngine);
         this.itemEngine = createDefaultItemEngine();
         this.inventoryEngine = createSharedInventory(48);
         this.equipmentEngine = createEquipmentEngine();
