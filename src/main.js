@@ -1,17 +1,20 @@
 import StartGame from './game/main.js';
 import { DomEngine } from './game/engine/DomEngine.js';
+import { LayerManager } from './game/engine/LayerManager.js';
 import { LogEngine } from './game/engine/LogEngine.js';
 import { uiContext } from './game/engine/UiContext.js';
 import { StatusManager } from './game/engine/StatusManager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const domEngine = new DomEngine('game-container');
-    const { logViewport, minimapViewport, playerStatusContainer, topButtons } = domEngine.bootstrap({ buttonCount: 5 });
+    const { logViewport, minimapViewport, playerStatusContainer, topButtons, layerRoot } = domEngine.bootstrap({ buttonCount: 5 });
 
-    const statusManager = new StatusManager({ container: playerStatusContainer });
+    const layerManager = new LayerManager({ root: layerRoot });
+    const statusManager = new StatusManager({ layerManager });
 
     uiContext.minimapViewport = minimapViewport;
     uiContext.playerStatusContainer = playerStatusContainer;
+    uiContext.layerManager = layerManager;
     uiContext.statusManager = statusManager;
 
     const logEngine = new LogEngine(logViewport);
