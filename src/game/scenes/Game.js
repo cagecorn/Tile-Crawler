@@ -18,6 +18,7 @@ import { uiContext } from '../engine/UiContext.js';
 import { PlayerStatusManager } from '../engine/PlayerStatusManager.js';
 import { ParticleAnimationEngine } from '../engine/ParticleAnimationEngine.js';
 import { TextAnimationEngine } from '../engine/TextAnimationEngine.js';
+import { PlayerVitalsWidget } from '../engine/PlayerVitalsWidget.js';
 
 export class Game extends Scene
 {
@@ -82,6 +83,7 @@ export class Game extends Scene
         this.enableCameraDrag();
         this.enableCameraZoom(cameraConfig);
         this.setupPlayer();
+        this.initializeVitalsWidget();
         this.playerStatusPanel?.bindPlayer(this.player);
         this.monsterManager = new MonsterManager({
             scene: this,
@@ -153,7 +155,7 @@ export class Game extends Scene
 
         this.playerStatusPanel = this.statusManager.registerPanel('player', (container) => new PlayerStatusManager({
             container
-        }));
+        }), { mode: 'layer', title: '플레이어 스테이터스' });
     }
 
     pickSpawnTile()
@@ -174,6 +176,19 @@ export class Game extends Scene
             }
         }
         return { x: 1, y: 1 };
+    }
+
+    initializeVitalsWidget()
+    {
+        const container = uiContext.playerStatusContainer ?? null;
+        if (!container) {
+            return;
+        }
+
+        this.playerVitalsWidget = new PlayerVitalsWidget({ container });
+        if (this.player) {
+            this.playerVitalsWidget.bindPlayer(this.player);
+        }
     }
 
     registerInput()

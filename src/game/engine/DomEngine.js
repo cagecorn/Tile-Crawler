@@ -10,6 +10,7 @@ export class DomEngine {
         this.topButtons = [];
         this.shell = this.createShell();
         this.playSpace = this.wrapGameContainer();
+        this.layerRoot = this.createLayerRoot();
         this.infoRow = this.createInfoRow();
     }
 
@@ -25,7 +26,8 @@ export class DomEngine {
             minimapViewport: minimapPanel.querySelector('.ui-minimap-viewport'),
             logViewport: logPanel.querySelector('.ui-log-scroll'),
             playerStatusContainer: statusColumn,
-            actionSlotContainer: actionColumn
+            actionSlotContainer: actionColumn,
+            layerRoot: this.layerRoot
         };
     }
 
@@ -54,6 +56,16 @@ export class DomEngine {
         playSpace.appendChild(this.root);
 
         return playSpace;
+    }
+
+    createLayerRoot ()
+    {
+        const layerRoot = document.createElement('div');
+        layerRoot.className = 'ui-layer-root';
+
+        this.root.appendChild(layerRoot);
+
+        return layerRoot;
     }
 
     createInfoRow ()

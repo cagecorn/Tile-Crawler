@@ -238,6 +238,73 @@ body {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
+.ui-vitals-card {
+    display: grid;
+    gap: 10px;
+}
+
+.ui-vitals-title {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+}
+
+.ui-vitals-bars {
+    display: grid;
+    gap: 8px;
+}
+
+.ui-vitals-row {
+    display: grid;
+    gap: 6px;
+}
+
+.ui-vitals-label {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.86);
+}
+
+.ui-vitals-bar {
+    position: relative;
+    height: 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+}
+
+.ui-vitals-fill {
+    position: absolute;
+    inset: 0;
+    width: 0%;
+    transition: width 140ms ease;
+}
+
+.ui-vitals-health .ui-vitals-fill {
+    background: linear-gradient(90deg, #f87171, #ef4444);
+    box-shadow: 0 0 10px rgba(248, 113, 113, 0.35);
+}
+
+.ui-vitals-mana .ui-vitals-fill {
+    background: linear-gradient(90deg, #60a5fa, #2563eb);
+    box-shadow: 0 0 10px rgba(96, 165, 250, 0.32);
+}
+
+.ui-vitals-text {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
 .ui-actions-column {
     display: flex;
     align-items: center;
@@ -425,4 +492,100 @@ body {
     background: rgba(255, 255, 255, 0.02);
     font-size: 12px;
     text-align: center;
+}
+
+.ui-layer-root {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 6;
+}
+
+.ui-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity 140ms ease;
+    pointer-events: none;
+}
+
+.ui-layer.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ui-layer.is-hidden {
+    display: none;
+}
+
+.ui-layer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.75));
+    backdrop-filter: blur(2px);
+}
+
+.ui-layer-window {
+    position: relative;
+    z-index: 2;
+    width: min(720px, 92vw);
+    max-height: 80vh;
+    background: linear-gradient(145deg, rgba(16, 20, 28, 0.95), rgba(6, 8, 12, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.ui-layer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+}
+
+.ui-layer-title {
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    color: rgba(255, 255, 255, 0.82);
+    text-transform: uppercase;
+}
+
+.ui-layer-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ui-layer-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.ui-layer-close:hover,
+.ui-layer-close:focus-visible {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.32);
+    outline: none;
+}
+
+.ui-layer-content {
+    padding: 14px 16px 16px;
+    overflow: auto;
 }
