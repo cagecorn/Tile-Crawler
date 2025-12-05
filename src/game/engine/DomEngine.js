@@ -7,7 +7,7 @@ export class DomEngine {
         }
 
         this.root.classList.add('ui-ready');
-        this.overlay = this.createOverlay();
+        this.shell = this.createShell();
     }
 
     bootstrap ({ buttonCount = 5 } = {})
@@ -21,12 +21,20 @@ export class DomEngine {
         };
     }
 
-    createOverlay ()
+    createShell ()
     {
-        const overlay = document.createElement('div');
-        overlay.className = 'ui-overlay';
-        this.root.appendChild(overlay);
-        return overlay;
+        const shell = document.createElement('div');
+        shell.className = 'ui-shell';
+
+        const parent = this.root.parentElement;
+        if (!parent) {
+            throw new Error('DomEngine requires the root element to have a parent container.');
+        }
+
+        parent.insertBefore(shell, this.root);
+        shell.appendChild(this.root);
+
+        return shell;
     }
 
     createTopBar (buttonCount)
@@ -47,7 +55,7 @@ export class DomEngine {
         }
 
         topBar.appendChild(buttonContainer);
-        this.overlay.appendChild(topBar);
+        this.shell.insertBefore(topBar, this.root);
 
         return topBar;
     }
@@ -66,7 +74,7 @@ export class DomEngine {
 
         logPanel.appendChild(title);
         logPanel.appendChild(scrollRegion);
-        this.overlay.appendChild(logPanel);
+        this.shell.appendChild(logPanel);
 
         return logPanel;
     }
