@@ -12,16 +12,21 @@ export class PathfindingEngine {
         const gScore = new Map();
         const fScore = new Map();
         const cameFrom = new Map();
+        const frontier = new PriorityQueue(fScore);
 
         const startKey = this.key(start);
         openSet.set(startKey, start);
         gScore.set(startKey, 0);
         fScore.set(startKey, this.heuristic(start, goal));
+        frontier.push(startKey, start);
 
         while (openSet.size > 0) {
-            const current = this.lowestFScore(openSet, fScore);
-            const currentKey = this.key(current);
+            const currentEntry = frontier.pop(openSet);
+            if (!currentEntry) {
+                break;
+            }
 
+            const { node: current, key: currentKey } = currentEntry;
             if (current.x === goal.x && current.y === goal.y) {
                 return this.reconstructPath(cameFrom, current);
             }
@@ -51,6 +56,7 @@ export class PathfindingEngine {
                     gScore.set(neighborKey, tentativeG);
                     fScore.set(neighborKey, tentativeG + this.heuristic(neighbor, goal));
                     openSet.set(neighborKey, neighbor);
+                    frontier.push(neighborKey, neighbor);
                 }
             }
         }
@@ -59,14 +65,7 @@ export class PathfindingEngine {
     }
 
     getNeighbors(node) {
-        const directions = [
-            { x: 1, y: 0 },
-            { x: -1, y: 0 },
-            { x: 0, y: 1 },
-            { x: 0, y: -1 }
-        ];
-
-        return directions
+        return DIRECTIONS
             .map((dir) => ({ x: node.x + dir.x, y: node.y + dir.y }))
             .filter((neighbor) => this.inBounds(neighbor));
     }
@@ -77,19 +76,6 @@ export class PathfindingEngine {
 
     heuristic(a, b) {
         return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-    }
-
-    lowestFScore(openSet, fScore) {
-        let lowest = null;
-        let lowestScore = Infinity;
-        openSet.forEach((node, key) => {
-            const score = fScore.get(key) ?? Infinity;
-            if (score < lowestScore) {
-                lowest = node;
-                lowestScore = score;
-            }
-        });
-        return lowest;
     }
 
     reconstructPath(cameFrom, current) {
@@ -105,6 +91,82 @@ export class PathfindingEngine {
 
     key(tile) {
         return `${tile.x},${tile.y}`;
+    }
+}
+
+const DIRECTIONS = [
+    { x: 1, y: 0 },
+    { x: -1, y: 0 },
+    { x: 0, y: 1 },
+    { x: 0, y: -1 }
+];
+
+class PriorityQueue {
+    constructor(scoreMap) {
+        this.scoreMap = scoreMap;
+        this.items = [];
+    }
+
+    push(key, node) {
+        const score = this.scoreMap.get(key) ?? Infinity;
+        this.items.push({ key, node, score });
+        this.bubbleUp(this.items.length - 1);
+    }
+
+    pop(openSet) {
+        while (this.items.length > 0) {
+            const top = this.items[0];
+            const last = this.items.pop();
+            if (this.items.length > 0) {
+                this.items[0] = last;
+                this.bubbleDown(0);
+            }
+
+            const currentScore = this.scoreMap.get(top.key);
+            if (openSet?.has(top.key) && currentScore === top.score) {
+                return top;
+            }
+        }
+        return null;
+    }
+
+    bubbleUp(index) {
+        while (index > 0) {
+            const parent = Math.floor((index - 1) / 2);
+            if (this.items[parent].score <= this.items[index].score) {
+                break;
+            }
+            this.swap(index, parent);
+            index = parent;
+        }
+    }
+
+    bubbleDown(index) {
+        const length = this.items.length;
+        while (true) {
+            let smallest = index;
+            const left = 2 * index + 1;
+            const right = 2 * index + 2;
+
+            if (left < length && this.items[left].score < this.items[smallest].score) {
+                smallest = left;
+            }
+
+            if (right < length && this.items[right].score < this.items[smallest].score) {
+                smallest = right;
+            }
+
+            if (smallest === index) {
+                break;
+            }
+
+            this.swap(index, smallest);
+            index = smallest;
+        }
+    }
+
+    swap(a, b) {
+        [this.items[a], this.items[b]] = [this.items[b], this.items[a]];
     }
 }
 
