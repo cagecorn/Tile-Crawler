@@ -69,7 +69,6 @@ export class Game extends Scene
             dungeon: this.dungeon,
             label: 'FLOOR 1'
         });
-        this.repositionCameraForMinimap();
 
         this.enableCameraDrag();
         this.enableCameraZoom(cameraConfig);
@@ -182,22 +181,6 @@ export class Game extends Scene
             return { type: 'move', dx: 0, dy: 1 };
         default:
             return null;
-        }
-    }
-
-    repositionCameraForMinimap()
-    {
-        if (!this.minimapEngine) {
-            return;
-        }
-
-        const { width, height } = this.scale;
-        const { width: frameWidth } = this.minimapEngine.getFrameDimensions();
-        const leftGutter = frameWidth + 28;
-        const viewportWidth = width - leftGutter;
-
-        if (viewportWidth > 320) {
-            this.cameras.main.setViewport(leftGutter, 0, viewportWidth, height);
         }
     }
 

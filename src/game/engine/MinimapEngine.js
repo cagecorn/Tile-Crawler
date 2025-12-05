@@ -1,16 +1,14 @@
 import { TileType } from '../dungeon/DungeonGenerator.js';
 
 export class MinimapEngine {
-    constructor({ scene, dungeon, label = 'FLOOR 1', maxSize, padding = 12, position } = {}) {
+    constructor({ scene, dungeon, label = 'FLOOR 1', maxSize = 220, padding = 12, position } = {}) {
         this.scene = scene;
         this.dungeon = dungeon;
+        this.maxSize = maxSize;
         this.padding = padding;
-        this.maxSize = maxSize ?? this.calculateDefaultSize();
         this.scale = this.calculateScale();
         this.mapWidth = dungeon.width * this.scale;
         this.mapHeight = dungeon.height * this.scale;
-        this.frameWidth = this.mapWidth + this.padding * 2;
-        this.frameHeight = this.mapHeight + this.padding * 2 + 18;
         this.lastTile = null;
 
         const anchor = position ?? this.getDefaultPosition();
@@ -24,13 +22,6 @@ export class MinimapEngine {
         this.createPlayerIndicator();
     }
 
-    calculateDefaultSize() {
-        const { width, height } = this.scene.scale;
-        const responsiveSize = Math.min(width * 0.26, height * 0.52);
-
-        return Math.max(240, Math.min(responsiveSize, 340));
-    }
-
     calculateScale() {
         const usableWidth = this.maxSize - this.padding * 2;
         const usableHeight = this.maxSize - this.padding * 2;
@@ -41,24 +32,27 @@ export class MinimapEngine {
     }
 
     getDefaultPosition() {
-        const { height } = this.scene.scale;
-        const gutter = Math.max(18, this.frameWidth * 0.06);
+        const { width, height } = this.scene.scale;
+        const totalWidth = this.mapWidth + this.padding * 2;
         return {
-            x: gutter + this.frameWidth / 2,
+            x: totalWidth * 0.6,
             y: height / 2
         };
     }
 
     createFrame(label) {
+        const frameWidth = this.mapWidth + this.padding * 2;
+        const frameHeight = this.mapHeight + this.padding * 2 + 18;
+
         const frame = this.scene.add.graphics();
         frame.fillStyle(0x0d1420, 0.92);
-        frame.fillRoundedRect(-this.frameWidth / 2, -this.frameHeight / 2, this.frameWidth, this.frameHeight, 12);
+        frame.fillRoundedRect(-frameWidth / 2, -frameHeight / 2, frameWidth, frameHeight, 12);
         frame.lineStyle(1, 0x3e6ba5, 0.9);
-        frame.strokeRoundedRect(-this.frameWidth / 2, -this.frameHeight / 2, this.frameWidth, this.frameHeight, 12);
+        frame.strokeRoundedRect(-frameWidth / 2, -frameHeight / 2, frameWidth, frameHeight, 12);
 
         const title = this.scene.add.text(
-            -this.frameWidth / 2 + this.padding,
-            -this.frameHeight / 2 + 2,
+            -frameWidth / 2 + this.padding,
+            -frameHeight / 2 + 2,
             label,
             {
                 fontFamily: 'monospace',
@@ -120,12 +114,5 @@ export class MinimapEngine {
         const y = -this.mapHeight / 2 + 10 + (tile.y + 0.5) * this.scale;
         this.playerIndicator.setPosition(x, y);
         this.lastTile = { ...tile };
-    }
-
-    getFrameDimensions() {
-        return {
-            width: this.frameWidth,
-            height: this.frameHeight
-        };
     }
 }
