@@ -8,6 +8,8 @@ export class TurnEngine {
         this.combatEngine = null;
         this.movementManager = null;
         this.visionEngine = null;
+        this.actionResolver = null;
+        this.turnCount = 0;
     }
 
     setCombatEngine(combatEngine) {
@@ -20,6 +22,10 @@ export class TurnEngine {
 
     setVisionEngine(visionEngine) {
         this.visionEngine = visionEngine;
+    }
+
+    setActionResolver(actionResolver) {
+        this.actionResolver = actionResolver;
     }
 
     registerUnit(unit) {
@@ -58,8 +64,12 @@ export class TurnEngine {
 
         this.movementManager?.beginTurn(this.units);
 
-        const actionPromises = orderedActions.map(({ unit, action }) => unit.performAction(action));
+        const actionPromises = orderedActions.map(({ unit, action }) => {
+            const resolved = this.actionResolver?.resolve(unit, action);
+            return resolved ?? unit.performAction(action);
+        });
         await Promise.all(actionPromises);
+        this.turnCount += 1;
         this.resolving = false;
     }
 
