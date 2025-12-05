@@ -8,15 +8,18 @@ export class DomEngine {
 
         this.root.classList.add('ui-ready');
         this.shell = this.createShell();
+        this.playSpace = this.wrapGameContainer();
     }
 
     bootstrap ({ buttonCount = 5 } = {})
     {
         const topBar = this.createTopBar(buttonCount);
+        const minimapPanel = this.createMinimapPanel();
         const logPanel = this.createLogPanel();
 
         return {
             topBar,
+            minimapViewport: minimapPanel.querySelector('.ui-minimap-viewport'),
             logViewport: logPanel.querySelector('.ui-log-scroll')
         };
     }
@@ -37,6 +40,17 @@ export class DomEngine {
         return shell;
     }
 
+    wrapGameContainer ()
+    {
+        const playSpace = document.createElement('div');
+        playSpace.className = 'ui-play-space';
+
+        this.shell.appendChild(playSpace);
+        playSpace.appendChild(this.root);
+
+        return playSpace;
+    }
+
     createTopBar (buttonCount)
     {
         const topBar = document.createElement('div');
@@ -55,9 +69,29 @@ export class DomEngine {
         }
 
         topBar.appendChild(buttonContainer);
-        this.shell.insertBefore(topBar, this.root);
+        this.shell.insertBefore(topBar, this.playSpace);
 
         return topBar;
+    }
+
+    createMinimapPanel ()
+    {
+        const minimapPanel = document.createElement('div');
+        minimapPanel.className = 'ui-minimap-panel';
+
+        const title = document.createElement('div');
+        title.className = 'ui-minimap-title';
+        title.textContent = 'MINIMAP';
+
+        const viewport = document.createElement('div');
+        viewport.className = 'ui-minimap-viewport';
+
+        minimapPanel.appendChild(title);
+        minimapPanel.appendChild(viewport);
+
+        this.playSpace.appendChild(minimapPanel);
+
+        return minimapPanel;
     }
 
     createLogPanel ()
