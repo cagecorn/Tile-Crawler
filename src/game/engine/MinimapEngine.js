@@ -6,7 +6,9 @@ export class MinimapEngine {
         this.dungeon = dungeon;
         this.scale = 1;
         this.canvas = null;
+        this.markerLayer = null;
         this.playerMarker = null;
+        this.monsterMarkers = new Map();
 
         this.setupViewport();
     }
@@ -18,13 +20,18 @@ export class MinimapEngine {
 
         this.container.innerHTML = '';
         this.container.classList.add('ui-minimap-ready');
+        this.monsterMarkers.clear();
 
         this.canvas = document.createElement('canvas');
         this.container.appendChild(this.canvas);
 
+        this.markerLayer = document.createElement('div');
+        this.markerLayer.className = 'ui-minimap-markers';
+        this.container.appendChild(this.markerLayer);
+
         this.playerMarker = document.createElement('div');
         this.playerMarker.className = 'ui-minimap-player';
-        this.container.appendChild(this.playerMarker);
+        this.markerLayer.appendChild(this.playerMarker);
 
         this.drawDungeon();
     }
@@ -68,8 +75,65 @@ export class MinimapEngine {
             return;
         }
 
+        this.positionMarker(this.playerMarker, tilePosition);
+    }
+
+    setMonsterPositions(monsters = []) {
+        if (!this.markerLayer) {
+            return;
+        }
+
+        const activeMonsters = new Set();
+
+        monsters.forEach((monster) => {
+            if (!monster) {
+                return;
+            }
+
+            const marker = this.getOrCreateMonsterMarker(monster);
+            this.positionMarker(marker, monster.tilePosition);
+            activeMonsters.add(monster);
+        });
+
+        this.monsterMarkers.forEach((marker, monster) => {
+            if (!activeMonsters.has(monster)) {
+                marker.remove();
+                this.monsterMarkers.delete(monster);
+            }
+        });
+    }
+
+    updateMonsterPosition(monster, tilePosition) {
+        if (!monster || !tilePosition) {
+            return;
+        }
+
+        const marker = this.getOrCreateMonsterMarker(monster);
+        this.positionMarker(marker, tilePosition);
+    }
+
+    getOrCreateMonsterMarker(monster) {
+        if (!this.markerLayer) {
+            return null;
+        }
+
+        if (!this.monsterMarkers.has(monster)) {
+            const marker = document.createElement('div');
+            marker.className = 'ui-minimap-monster';
+            this.monsterMarkers.set(monster, marker);
+            this.markerLayer.appendChild(marker);
+        }
+
+        return this.monsterMarkers.get(monster);
+    }
+
+    positionMarker(marker, tilePosition) {
+        if (!marker || !tilePosition) {
+            return;
+        }
+
         const x = tilePosition.x * this.scale + this.scale / 2;
         const y = tilePosition.y * this.scale + this.scale / 2;
-        this.playerMarker.style.transform = `translate(${x}px, ${y}px)`;
+        marker.style.transform = `translate(${x}px, ${y}px)`;
     }
 }

@@ -78,6 +78,10 @@ export class MonsterManager {
         });
     }
 
+    getMonsters() {
+        return this.zombies.slice();
+    }
+
     randomTileInRoom(room) {
         const x = Math.floor(room.x + 1 + Math.random() * Math.max(1, room.width - 2));
         const y = Math.floor(room.y + 1 + Math.random() * Math.max(1, room.height - 2));

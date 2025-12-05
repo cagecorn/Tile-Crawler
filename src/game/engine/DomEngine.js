@@ -9,6 +9,7 @@ export class DomEngine {
         this.root.classList.add('ui-ready');
         this.shell = this.createShell();
         this.playSpace = this.wrapGameContainer();
+        this.infoRow = this.createInfoRow();
     }
 
     bootstrap ({ buttonCount = 5 } = {})
@@ -51,6 +52,16 @@ export class DomEngine {
         return playSpace;
     }
 
+    createInfoRow ()
+    {
+        const infoRow = document.createElement('div');
+        infoRow.className = 'ui-info-row';
+
+        this.playSpace.appendChild(infoRow);
+
+        return infoRow;
+    }
+
     createTopBar (buttonCount)
     {
         const topBar = document.createElement('div');
@@ -89,7 +100,7 @@ export class DomEngine {
         minimapPanel.appendChild(title);
         minimapPanel.appendChild(viewport);
 
-        this.playSpace.appendChild(minimapPanel);
+        this.infoRow.appendChild(minimapPanel);
 
         return minimapPanel;
     }
@@ -108,7 +119,7 @@ export class DomEngine {
 
         logPanel.appendChild(title);
         logPanel.appendChild(scrollRegion);
-        this.shell.appendChild(logPanel);
+        this.infoRow.appendChild(logPanel);
 
         return logPanel;
     }
