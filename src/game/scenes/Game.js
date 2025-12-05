@@ -56,7 +56,7 @@ export class Game extends Scene
         this.visionEngine = new VisionEngine(this.dungeon);
 
         this.createMinimap();
-        this.createPlayerStatusPanel();
+        this.initializeStatusPanels();
 
         const mapLayer = this.add.layer();
         for (let y = 0; y < dungeon.height; y++) {
@@ -82,7 +82,7 @@ export class Game extends Scene
         this.enableCameraDrag();
         this.enableCameraZoom(cameraConfig);
         this.setupPlayer();
-        this.playerStatusManager?.bindPlayer(this.player);
+        this.playerStatusPanel?.bindPlayer(this.player);
         this.monsterManager = new MonsterManager({
             scene: this,
             dungeon: this.dungeon,
@@ -144,15 +144,16 @@ export class Game extends Scene
         this.minimap?.updatePlayerPosition(spawnTile);
     }
 
-    createPlayerStatusPanel()
+    initializeStatusPanels()
     {
-        if (!uiContext.playerStatusContainer) {
+        this.statusManager = uiContext.statusManager ?? null;
+        if (!this.statusManager) {
             return;
         }
 
-        this.playerStatusManager = new PlayerStatusManager({
-            container: uiContext.playerStatusContainer
-        });
+        this.playerStatusPanel = this.statusManager.registerPanel('player', (container) => new PlayerStatusManager({
+            container
+        }));
     }
 
     pickSpawnTile()

@@ -7,6 +7,7 @@ export class DomEngine {
         }
 
         this.root.classList.add('ui-ready');
+        this.topButtons = [];
         this.shell = this.createShell();
         this.playSpace = this.wrapGameContainer();
         this.infoRow = this.createInfoRow();
@@ -20,6 +21,7 @@ export class DomEngine {
 
         return {
             topBar,
+            topButtons: this.topButtons,
             minimapViewport: minimapPanel.querySelector('.ui-minimap-viewport'),
             logViewport: logPanel.querySelector('.ui-log-scroll'),
             playerStatusContainer: statusColumn,
@@ -79,6 +81,7 @@ export class DomEngine {
             button.title = `Action slot ${i + 1}`;
             button.setAttribute('aria-label', `Action slot ${i + 1}`);
             buttonContainer.appendChild(button);
+            this.topButtons.push(button);
         }
 
         topBar.appendChild(buttonContainer);

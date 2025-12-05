@@ -157,6 +157,12 @@ body {
     background: rgba(255, 255, 255, 0.18);
 }
 
+.ui-bar-button.is-active {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.24);
+}
+
 .ui-log-panel {
     min-height: 150px;
     background: linear-gradient(180deg, rgba(10, 10, 20, 0.8), rgba(10, 10, 20, 0.92));
@@ -247,6 +253,48 @@ body {
     gap: 8px;
 }
 
+.ui-status-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ui-status-portrait {
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.ui-status-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ui-status-name {
+    font-size: 16px;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.ui-status-meta {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 13px;
+}
+
+.ui-status-value {
+    color: #fcd34d;
+    font-weight: 700;
+    margin-left: 4px;
+}
+
 .ui-status-title {
     font-size: 12px;
     letter-spacing: 0.18em;
@@ -306,4 +354,75 @@ body {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.9);
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.ui-status-section {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 10px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+    display: grid;
+    gap: 10px;
+}
+
+.ui-status-section-title {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.ui-stat-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ui-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ui-stat-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.ui-stat-value {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.92);
+    font-weight: 700;
+}
+
+.ui-effect-list {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 13px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.ui-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.ui-slot {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.58);
+    background: rgba(255, 255, 255, 0.02);
+    font-size: 12px;
+    text-align: center;
 }

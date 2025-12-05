@@ -12,7 +12,16 @@ export class ClassManager {
                     defense: 12,
                     mobility: 4,
                     actionSpeed: 10,
-                    sightRange: 10
+                    sightRange: 10,
+                    level: 1,
+                    experience: 0,
+                    magicAttack: 8,
+                    magicDefense: 14,
+                    evasion: 12,
+                    accuracy: 92,
+                    actionPoints: 2,
+                    movePoints: 4,
+                    critChance: 12
                 }
             }
         };
