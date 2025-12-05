@@ -1,5 +1,6 @@
 const DEFAULT_STATS = {
     health: 120,
+    mana: 80,
     attack: 12,
     defense: 8,
     mobility: 4,
@@ -17,6 +18,8 @@ export class StatManager {
         return {
             health: merged.health,
             maxHealth: merged.health,
+            mana: merged.mana,
+            maxMana: merged.mana,
             attack: merged.attack,
             defense: merged.defense,
             mobility: merged.mobility,

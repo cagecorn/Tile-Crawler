@@ -15,6 +15,7 @@ import { MonsterManager } from '../managers/MonsterManager.js';
 import { PlayerUnit } from '../units/Player.js';
 import { MinimapEngine } from '../engine/MinimapEngine.js';
 import { uiContext } from '../engine/UiContext.js';
+import { PlayerStatusManager } from '../engine/PlayerStatusManager.js';
 
 export class Game extends Scene
 {
@@ -45,6 +46,7 @@ export class Game extends Scene
         this.visionEngine = new VisionEngine(this.dungeon);
 
         this.createMinimap();
+        this.createPlayerStatusPanel();
 
         const mapLayer = this.add.layer();
         for (let y = 0; y < dungeon.height; y++) {
@@ -70,6 +72,7 @@ export class Game extends Scene
         this.enableCameraDrag();
         this.enableCameraZoom(cameraConfig);
         this.setupPlayer();
+        this.playerStatusManager?.bindPlayer(this.player);
         this.monsterManager = new MonsterManager({
             scene: this,
             dungeon: this.dungeon,
@@ -129,6 +132,17 @@ export class Game extends Scene
         );
         this.cameras.main.startFollow(this.player.sprite, false, 0.12, 0.12);
         this.minimap?.updatePlayerPosition(spawnTile);
+    }
+
+    createPlayerStatusPanel()
+    {
+        if (!uiContext.playerStatusContainer) {
+            return;
+        }
+
+        this.playerStatusManager = new PlayerStatusManager({
+            container: uiContext.playerStatusContainer
+        });
     }
 
     pickSpawnTile()

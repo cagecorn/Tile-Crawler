@@ -1,3 +1,4 @@
 export const uiContext = {
-    minimapViewport: null
+    minimapViewport: null,
+    playerStatusContainer: null
 };

@@ -5,9 +5,10 @@ import { uiContext } from './game/engine/UiContext.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const domEngine = new DomEngine('game-container');
-    const { logViewport, minimapViewport } = domEngine.bootstrap({ buttonCount: 5 });
+    const { logViewport, minimapViewport, playerStatusContainer } = domEngine.bootstrap({ buttonCount: 5 });
 
     uiContext.minimapViewport = minimapViewport;
+    uiContext.playerStatusContainer = playerStatusContainer;
 
     const logEngine = new LogEngine(logViewport);
 

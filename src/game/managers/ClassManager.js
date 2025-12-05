@@ -7,6 +7,7 @@ export class ClassManager {
                 displayName: '전사',
                 stats: {
                     health: 160,
+                    mana: 50,
                     attack: 16,
                     defense: 12,
                     mobility: 4,
