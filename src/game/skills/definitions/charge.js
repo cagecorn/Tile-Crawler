@@ -3,11 +3,11 @@ export const chargeSkill = {
     name: '차지',
     type: 'active',
     icon: 'assets/images/skills/charge.png',
-    manaCost: 12,
+    manaCost: 10,
     cooldown: 3,
     range: { min: 4, max: 6 },
-    damageMultiplier: 1.2,
-    description: '4~6타일 밖의 적에게 잔상을 남기며 돌진, 120% 물리 피해를 가한다.',
+    damageMultiplier: 1.35,
+    description: '4~6타일 밖의 적에게 잔상을 남기며 돌진, 135% 물리 피해와 강한 충돌 효과를 가한다.',
     aiHint: {
         role: 'gapclose',
         priority: 'burst'
@@ -70,6 +70,7 @@ export const chargeSkill = {
         const baseDamage = combatEngine?.calculateDamage?.(user, target) ?? 0;
         const damage = Math.max(1, Math.floor(baseDamage * this.damageMultiplier));
         target.setHealth(target.currentHealth - damage);
+        engine.createImpactBurst(target, { color: 0xfff0b8, radius: 24, duration: 280 });
         combatEngine?.handleDamageFeedback?.(user, target, damage);
         specialEffectManager?.refreshUnit?.(target);
         logEngine?.log?.(`${user.getName()}의 차지가 ${target.getName()}에게 ${damage} 피해를 입혔습니다.`);

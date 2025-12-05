@@ -36,6 +36,8 @@ import { PlayerSkillMechanismManager } from '../skills/PlayerSkillMechanismManag
 import { SkillAiManager } from '../skills/SkillAiManager.js';
 import { SkillBookPanel } from '../engine/SkillBookPanel.js';
 import { TurnCounterEngine } from '../engine/TurnCounterEngine.js';
+import { RegenManager } from '../managers/RegenManager.js';
+import { runDebugRegenTest } from '../tests/DebugRegenTest.js';
 
 export class Game extends Scene
 {
@@ -64,6 +66,12 @@ export class Game extends Scene
         this.specialEffectManager = new SpecialEffectManager(this, this.offscreenEngine);
         this.statManager = new StatManager();
         this.classManager = new ClassManager(this.statManager);
+        this.regenManager = new RegenManager({
+            turnCounterEngine: this.turnCounterEngine,
+            specialEffectManager: this.specialEffectManager,
+            unitProvider: () => Array.from(this.turnEngine?.units ?? []),
+            logEngine: uiContext.logEngine
+        });
         this.turnEngine.setMovementManager(this.movementManager);
         this.combatEngine = new CombatEngine({
             turnEngine: this.turnEngine,
@@ -161,6 +169,9 @@ export class Game extends Scene
             movementManager: this.movementManager
         });
         this.monsterManager.spawnZombies();
+        if (import.meta?.env?.MODE !== 'production') {
+            runDebugRegenTest({ regenManager: this.regenManager, logger: uiContext.logEngine });
+        }
         this.registerInput();
         this.trackUnitsOnMinimap();
     }

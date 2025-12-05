@@ -8,6 +8,8 @@ export class ClassManager {
                 stats: {
                     health: 160,
                     mana: 50,
+                    healthRegen: 4,
+                    manaRegen: 2,
                     attack: 16,
                     defense: 12,
                     mobility: 4,
@@ -31,6 +33,8 @@ export class ClassManager {
                 stats: {
                     health: 240,
                     mana: 40,
+                    healthRegen: 5,
+                    manaRegen: 1,
                     attack: 14,
                     defense: 20,
                     mobility: 3,
