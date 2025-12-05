@@ -3,6 +3,7 @@ export class SkillEngine {
         movementManager,
         pathfindingEngine,
         turnEngine,
+        turnCounterEngine,
         combatEngine,
         animationEngine,
         specialEffectManager,
@@ -12,6 +13,7 @@ export class SkillEngine {
         this.movementManager = movementManager;
         this.pathfindingEngine = pathfindingEngine;
         this.turnEngine = turnEngine;
+        this.turnCounterEngine = turnCounterEngine ?? turnEngine?.turnCounterEngine ?? null;
         this.combatEngine = combatEngine;
         this.animationEngine = animationEngine;
         this.specialEffectManager = specialEffectManager;
@@ -87,6 +89,10 @@ export class SkillEngine {
     }
 
     getRemainingCooldown(unit, skillId) {
+        if (this.turnCounterEngine) {
+            return this.turnCounterEngine.getRemaining({ unit, category: 'cooldown', key: skillId });
+        }
+
         const cooldownEntry = this.cooldowns.get(unit);
         const currentTurn = this.turnEngine?.turnCount ?? 0;
         const readyTurn = cooldownEntry?.get(skillId) ?? 0;
@@ -128,11 +134,20 @@ export class SkillEngine {
     }
 
     commitSkillCost(unit, skill) {
-        const currentTurn = this.turnEngine?.turnCount ?? 0;
+        const currentTurn = this.turnCounterEngine?.turn ?? this.turnEngine?.turnCount ?? 0;
         if (skill.cooldown) {
-            const entry = this.cooldowns.get(unit) ?? new Map();
-            entry.set(skill.id, currentTurn + skill.cooldown);
-            this.cooldowns.set(unit, entry);
+            if (this.turnCounterEngine) {
+                this.turnCounterEngine.setCounter({
+                    unit,
+                    category: 'cooldown',
+                    key: skill.id,
+                    duration: skill.cooldown
+                });
+            } else {
+                const entry = this.cooldowns.get(unit) ?? new Map();
+                entry.set(skill.id, currentTurn + skill.cooldown);
+                this.cooldowns.set(unit, entry);
+            }
         }
         if (skill.manaCost) {
             unit.setMana(unit.currentMana - skill.manaCost);
