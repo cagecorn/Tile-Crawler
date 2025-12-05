@@ -16,12 +16,14 @@ export class DomEngine {
     {
         const topBar = this.createTopBar(buttonCount);
         const minimapPanel = this.createMinimapPanel();
-        const logPanel = this.createLogPanel();
+        const { logPanel, statusColumn, actionColumn } = this.createLogArea();
 
         return {
             topBar,
             minimapViewport: minimapPanel.querySelector('.ui-minimap-viewport'),
-            logViewport: logPanel.querySelector('.ui-log-scroll')
+            logViewport: logPanel.querySelector('.ui-log-scroll'),
+            playerStatusContainer: statusColumn,
+            actionSlotContainer: actionColumn
         };
     }
 
@@ -105,6 +107,21 @@ export class DomEngine {
         return minimapPanel;
     }
 
+    createLogArea ()
+    {
+        const logArea = document.createElement('div');
+        logArea.className = 'ui-log-area';
+
+        const logPanel = this.createLogPanel();
+        const { container: sidebar, statusColumn, actionColumn } = this.createLogSidebar();
+
+        logArea.appendChild(logPanel);
+        logArea.appendChild(sidebar);
+        this.infoRow.appendChild(logArea);
+
+        return { logPanel, statusColumn, actionColumn };
+    }
+
     createLogPanel ()
     {
         const logPanel = document.createElement('div');
@@ -119,8 +136,24 @@ export class DomEngine {
 
         logPanel.appendChild(title);
         logPanel.appendChild(scrollRegion);
-        this.infoRow.appendChild(logPanel);
 
         return logPanel;
+    }
+
+    createLogSidebar ()
+    {
+        const sidebar = document.createElement('div');
+        sidebar.className = 'ui-log-sidebar';
+
+        const statusColumn = document.createElement('div');
+        statusColumn.className = 'ui-sidebar-column ui-status-column';
+
+        const actionColumn = document.createElement('div');
+        actionColumn.className = 'ui-sidebar-column ui-actions-column';
+
+        sidebar.appendChild(statusColumn);
+        sidebar.appendChild(actionColumn);
+
+        return { container: sidebar, statusColumn, actionColumn };
     }
 }

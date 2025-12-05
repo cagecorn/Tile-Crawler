@@ -24,6 +24,8 @@ export class Unit {
         this.tilePosition = { ...startTile };
         this.currentHealth = this.stats.health;
         this.maxHealth = this.stats.maxHealth;
+        this.currentMana = this.stats.mana;
+        this.maxMana = this.stats.maxMana;
 
         const worldPosition = this.animationEngine.tileToWorldPosition(startTile, tileSize);
         this.sprite = this.scene.add.image(worldPosition.x, worldPosition.y, textureKey);
@@ -36,6 +38,9 @@ export class Unit {
         if (this.specialEffectManager) {
             this.specialEffectManager.trackUnitHealth(this, { width: this.tileSize * 0.9 });
         }
+
+        this.emitHealthChanged();
+        this.emitManaChanged();
     }
 
     getActionSpeed() {
@@ -57,6 +62,13 @@ export class Unit {
         };
     }
 
+    getManaState() {
+        return {
+            current: this.currentMana,
+            max: this.maxMana
+        };
+    }
+
     setHealth(value) {
         const clamped = Math.max(0, Math.min(value, this.maxHealth));
         if (clamped === this.currentHealth) {
@@ -67,9 +79,20 @@ export class Unit {
             this.specialEffectManager.refreshUnit(this);
         }
 
+        this.emitHealthChanged();
+
         if (!this.isAlive()) {
             this.handleDeath();
         }
+    }
+
+    setMana(value) {
+        const clamped = Math.max(0, Math.min(value, this.maxMana));
+        if (clamped === this.currentMana) {
+            return;
+        }
+        this.currentMana = clamped;
+        this.emitManaChanged();
     }
 
     handleDeath() {
@@ -122,6 +145,22 @@ export class Unit {
             return false;
         }
         return this.dungeon.tiles[tile.y][tile.x] === TileType.FLOOR;
+    }
+
+    emitHealthChanged() {
+        this.scene?.events.emit('unit-health-changed', {
+            unit: this,
+            current: this.currentHealth,
+            max: this.maxHealth
+        });
+    }
+
+    emitManaChanged() {
+        this.scene?.events.emit('unit-mana-changed', {
+            unit: this,
+            current: this.currentMana,
+            max: this.maxMana
+        });
     }
 }
 

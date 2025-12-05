@@ -169,9 +169,8 @@ body {
     flex-direction: column;
     gap: 6px;
     backdrop-filter: blur(6px);
-    flex: 1;
+    flex: 1.6;
     min-width: 260px;
-    max-width: 520px;
 }
 
 .ui-log-title {
@@ -205,4 +204,106 @@ body {
     background: rgba(255, 255, 255, 0.04);
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ui-log-area {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.ui-log-sidebar {
+    flex: 1;
+    min-width: 240px;
+    max-width: 440px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.ui-sidebar-column {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 10px;
+    min-height: 150px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.ui-actions-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.38);
+    font-size: 14px;
+    letter-spacing: 0.05em;
+}
+
+.ui-status-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ui-status-title {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.ui-status-body {
+    display: grid;
+    gap: 8px;
+}
+
+.ui-status-row {
+    display: grid;
+    gap: 6px;
+}
+
+.ui-status-label {
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.86);
+}
+
+.ui-status-bar {
+    position: relative;
+    height: 18px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+}
+
+.ui-status-bar-fill {
+    position: absolute;
+    inset: 0;
+    width: 0%;
+    transition: width 140ms ease;
+}
+
+.ui-status-health .ui-status-bar-fill {
+    background: linear-gradient(90deg, #f87171, #ef4444);
+    box-shadow: 0 0 12px rgba(248, 113, 113, 0.4);
+}
+
+.ui-status-mana .ui-status-bar-fill {
+    background: linear-gradient(90deg, #60a5fa, #2563eb);
+    box-shadow: 0 0 12px rgba(96, 165, 250, 0.35);
+}
+
+.ui-status-bar-text {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
