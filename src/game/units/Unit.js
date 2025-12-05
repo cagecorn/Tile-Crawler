@@ -22,7 +22,8 @@ export class Unit {
         this.specialEffectManager = specialEffectManager;
         this.turnEngine = turnEngine;
         this.movementManager = movementManager;
-        this.stats = stats;
+        this.baseStats = { ...stats };
+        this.stats = { ...stats };
         this.faction = faction;
         this.name = name ?? textureKey;
         this.tilePosition = { ...startTile };
@@ -77,6 +78,21 @@ export class Unit {
             current: this.currentMana,
             max: this.maxMana
         };
+    }
+
+    applyStatModifiers(modifiers = {}) {
+        const merged = { ...this.baseStats };
+        Object.entries(modifiers).forEach(([key, value]) => {
+            if (typeof value === 'number') {
+                merged[key] = (merged[key] ?? 0) + value;
+            }
+        });
+
+        this.stats = merged;
+        this.maxHealth = merged.maxHealth ?? merged.health ?? this.maxHealth;
+        this.maxMana = merged.maxMana ?? merged.mana ?? this.maxMana;
+        this.currentHealth = Math.min(this.currentHealth, this.maxHealth);
+        this.currentMana = Math.min(this.currentMana, this.maxMana);
     }
 
     setHealth(value) {
@@ -151,6 +167,41 @@ export class Unit {
         this.tilePosition = target;
         this.scene?.events.emit('unit-moved', { unit: this, tile: target });
         return this.animationEngine.moveToTile(this.sprite, target, this.tileSize).then(() => true);
+    }
+
+    attemptPath(steps = []) {
+        if (!Array.isArray(steps) || steps.length === 0) {
+            return Promise.resolve(0);
+        }
+
+        const traversed = [];
+
+        for (const { dx = 0, dy = 0 } of steps) {
+            const target = { x: this.tilePosition.x + dx, y: this.tilePosition.y + dy };
+            if (!this.isWalkable(target)) {
+                break;
+            }
+
+            const occupant = this.turnEngine?.getUnitAt(target);
+            if (occupant && occupant !== this) {
+                if (occupant.faction !== this.faction) {
+                    return this.turnEngine.engageUnits(this, occupant).then(() => traversed.length);
+                }
+                break;
+            }
+
+            this.turnEngine?.updateUnitPosition(this, target);
+            this.tilePosition = target;
+            traversed.push({ ...target });
+        }
+
+        if (!traversed.length) {
+            return Promise.resolve(0);
+        }
+
+        const finalTile = traversed[traversed.length - 1];
+        this.scene?.events.emit('unit-moved', { unit: this, tile: finalTile });
+        return this.animationEngine.moveAlongPath(this.sprite, traversed, this.tileSize).then(() => traversed.length);
     }
 
     isWalkable(tile) {

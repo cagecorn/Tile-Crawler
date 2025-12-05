@@ -31,21 +31,10 @@ export class MovementManager {
         }
 
         const steps = this.extractSteps(unit, action, remaining);
-        let successfulSteps = 0;
-
-        for (const { dx, dy } of steps) {
-            if (successfulSteps >= remaining) {
-                break;
-            }
-            const moved = await unit.attemptMove(dx, dy);
-            if (!moved) {
-                break;
-            }
-            successfulSteps++;
-        }
-
-        this.allowances.set(unit, Math.max(0, remaining - successfulSteps));
-        return successfulSteps > 0;
+        const limitedSteps = steps.slice(0, remaining);
+        const stepsTaken = await unit.attemptPath(limitedSteps);
+        this.allowances.set(unit, Math.max(0, remaining - stepsTaken));
+        return stepsTaken > 0;
     }
 
     extractSteps(unit, action, maxSteps) {

@@ -58,6 +58,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const equipmentButton = topButtons?.[3];
+    if (equipmentButton) {
+        equipmentButton.textContent = '[장비]';
+        equipmentButton.title = '장비 관리 창 열기';
+        equipmentButton.setAttribute('aria-label', '장비 관리 창 열기');
+        equipmentButton.addEventListener('click', () => {
+            statusManager.show('equipment');
+            highlightTopButton(equipmentButton, topButtons);
+        });
+    }
+
     StartGame('game-container');
 });
 

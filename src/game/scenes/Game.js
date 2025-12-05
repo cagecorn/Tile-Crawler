@@ -25,6 +25,10 @@ import { PartyFormationManager } from '../managers/PartyFormationManager.js';
 import { PartyAiManager } from '../managers/PartyAiManager.js';
 import { MercenaryRosterPanel } from '../engine/MercenaryRosterPanel.js';
 import { UnitStatusPanel } from '../engine/UnitStatusPanel.js';
+import { createDefaultItemEngine } from '../engine/ItemEngine.js';
+import { createSharedInventory } from '../engine/InventoryEngine.js';
+import { createEquipmentEngine } from '../engine/EquipmentEngine.js';
+import { EquipmentPanel } from '../engine/EquipmentPanel.js';
 
 export class Game extends Scene
 {
@@ -63,6 +67,9 @@ export class Game extends Scene
         this.turnEngine.setCombatEngine(this.combatEngine);
         this.pathfindingEngine = new PathfindingEngine(this.dungeon, this.turnEngine);
         this.visionEngine = new VisionEngine(this.dungeon);
+        this.itemEngine = createDefaultItemEngine();
+        this.inventoryEngine = createSharedInventory(48);
+        this.equipmentEngine = createEquipmentEngine();
         this.partyFormationManager = new PartyFormationManager({
             turnEngine: this.turnEngine,
             dungeon: this.dungeon,
@@ -107,6 +114,7 @@ export class Game extends Scene
         this.initializeVitalsWidget();
         this.playerStatusPanel?.bindPlayer(this.player);
         this.initializePartySystems();
+        this.seedStarterInventory();
         this.monsterManager = new MonsterManager({
             scene: this,
             dungeon: this.dungeon,
@@ -180,6 +188,15 @@ export class Game extends Scene
         this.playerStatusPanel = this.statusManager.registerPanel('player', (container) => new PlayerStatusManager({
             container
         }), { mode: 'layer', title: '플레이어 스테이터스' });
+        this.playerStatusPanel?.setEquipmentEngine?.(this.equipmentEngine);
+
+        this.equipmentPanel = this.statusManager.registerPanel('equipment', (container) => new EquipmentPanel({
+            container,
+            inventoryEngine: this.inventoryEngine,
+            equipmentEngine: this.equipmentEngine,
+            itemEngine: this.itemEngine,
+            unitProvider: () => this.getNavigableUnits()
+        }), { mode: 'layer', title: '장비 관리' });
 
         this.statusManager.registerPanel('skills', (container) => {
             container.innerHTML = '';
@@ -206,11 +223,17 @@ export class Game extends Scene
             classManager: this.classManager,
             statManager: this.statManager,
             logEngine: uiContext.logEngine,
-            minimap: this.minimap
+            minimap: this.minimap,
+            equipmentEngine: this.equipmentEngine
         });
 
         this.registerPartyPanels();
         this.registerHireButton();
+        this.playerStatusPanel?.setNavigator(() => this.getNavigableUnits());
+        this.partyEngine?.onChange(() => {
+            this.playerStatusPanel?.refreshNavigation?.();
+            this.equipmentPanel?.refreshNavigation();
+        });
     }
 
     pickSpawnTile()
@@ -311,16 +334,26 @@ export class Game extends Scene
 
             if (unit.faction === 'undead') {
                 this.minimap.updateMonsterPosition(unit, tile);
+                return;
+            }
+
+            if (unit.faction === 'allies') {
+                this.minimap.updateAllyPosition(unit, tile);
             }
         });
 
         this.events.on('unit-died', ({ unit }) => {
             if (unit.faction === 'undead') {
                 this.minimap.removeMonster(unit);
+                return;
+            }
+            if (unit.faction === 'allies') {
+                this.minimap.removeAlly(unit);
             }
         });
 
         this.minimap.setMonsterPositions(this.monsterManager?.getMonsters() ?? []);
+        this.minimap.setAllies(this.partyEngine?.getPartyOrder?.(false) ?? []);
     }
 
     registerPartyPanels()
@@ -360,5 +393,28 @@ export class Game extends Scene
         }
         this.mercenaryStatusPanel.bindUnit(unit);
         this.statusManager?.show('mercenary-status');
+    }
+
+    getNavigableUnits()
+    {
+        const partyUnits = this.partyEngine?.getPartyOrder?.(false) ?? [];
+        const uniqueUnits = new Set([this.player, ...partyUnits]);
+        return Array.from(uniqueUnits).filter(Boolean);
+    }
+
+    seedStarterInventory()
+    {
+        const starterItems = [
+            this.itemEngine?.createInstance('short-axe'),
+            this.itemEngine?.createInstance('plate-armor')
+        ].filter(Boolean);
+
+        starterItems.forEach((item) => {
+            this.inventoryEngine?.addItem(item);
+        });
+
+        if (this.player) {
+            this.equipmentEngine?.registerUnit(this.player);
+        }
     }
 }
