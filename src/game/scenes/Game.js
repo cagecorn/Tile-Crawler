@@ -83,7 +83,7 @@ export class Game extends Scene
         });
         this.monsterManager.spawnZombies();
         this.registerInput();
-        this.trackPlayerOnMinimap();
+        this.trackUnitsOnMinimap();
     }
 
     enableCameraDrag ()
@@ -201,7 +201,7 @@ export class Game extends Scene
         });
     }
 
-    trackPlayerOnMinimap()
+    trackUnitsOnMinimap()
     {
         if (!this.minimap) {
             return;
@@ -210,7 +210,14 @@ export class Game extends Scene
         this.events.on('unit-moved', ({ unit, tile }) => {
             if (unit === this.player) {
                 this.minimap.updatePlayerPosition(tile);
+                return;
+            }
+
+            if (unit.faction === 'undead') {
+                this.minimap.updateMonsterPosition(unit, tile);
             }
         });
+
+        this.minimap.setMonsterPositions(this.monsterManager?.getMonsters() ?? []);
     }
 }
