@@ -203,17 +203,41 @@ export class SkillEngine {
         trailTiles.forEach((tile, index) => {
             const world = this.animationEngine?.tileToWorldPosition(tile, unit.tileSize);
             const ghost = unit.scene.add.image(world?.x ?? unit.sprite.x, world?.y ?? unit.sprite.y, unit.sprite.texture.key);
-            ghost.setAlpha(0.4);
+            const alpha = Math.max(0.2, 0.55 - index * 0.08);
+            ghost.setAlpha(alpha);
             ghost.setDepth((unit.sprite.depth ?? 10) - 1);
             ghost.setTint(0xbad4ff);
+            ghost.setScale(1.05 - Math.min(0.04 * index, 0.25));
 
             unit.scene.tweens.add({
                 targets: ghost,
                 alpha: 0,
-                duration: 240 + index * 30,
+                scale: 0.85,
+                duration: 260 + index * 36,
                 ease: 'Cubic.easeOut',
                 onComplete: () => ghost.destroy()
             });
         });
+    }
+
+    createImpactBurst(target, { color = 0xffe17b, radius = 20, duration = 220 } = {}) {
+        const scene = target?.scene ?? this.animationEngine?.scene;
+        if (!scene || !target?.sprite) {
+            return;
+        }
+
+        const burst = scene.add.circle(target.sprite.x, target.sprite.y, radius, color, 0.55);
+        burst.setDepth((target.sprite.depth ?? 10) + 2);
+
+        scene.tweens.add({
+            targets: burst,
+            scale: 1.6,
+            alpha: 0,
+            duration,
+            ease: 'Cubic.easeOut',
+            onComplete: () => burst.destroy()
+        });
+
+        scene.cameras?.main?.shake?.(140, 0.0045);
     }
 }

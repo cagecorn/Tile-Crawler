@@ -16,6 +16,7 @@ export class TurnCounterEngine {
         this.turn += 1;
         this.tickUnitCounters(units);
         this.tickGlobalCounters();
+        this.notifyTick({ units });
     }
 
     setCounter({ unit = null, category = 'general', key, duration, data = null }) {
@@ -83,6 +84,10 @@ export class TurnCounterEngine {
 
     notifyExpiry(payload) {
         this.listeners.forEach((listener) => listener(payload));
+    }
+
+    notifyTick(payload) {
+        this.listeners.forEach((listener) => listener({ ...payload, turn: this.turn }));
     }
 
     getOrCreateUnitBucket(unit) {
