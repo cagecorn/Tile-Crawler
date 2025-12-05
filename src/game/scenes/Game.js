@@ -29,6 +29,12 @@ import { createDefaultItemEngine } from '../engine/ItemEngine.js';
 import { createSharedInventory } from '../engine/InventoryEngine.js';
 import { createEquipmentEngine } from '../engine/EquipmentEngine.js';
 import { EquipmentPanel } from '../engine/EquipmentPanel.js';
+import { SkillEngine } from '../skills/SkillEngine.js';
+import { registerCoreSkills } from '../skills/SkillRegistry.js';
+import { PlayerSkillManager } from '../skills/PlayerSkillManager.js';
+import { PlayerSkillMechanismManager } from '../skills/PlayerSkillMechanismManager.js';
+import { SkillAiManager } from '../skills/SkillAiManager.js';
+import { SkillBookPanel } from '../engine/SkillBookPanel.js';
 
 export class Game extends Scene
 {
@@ -68,6 +74,29 @@ export class Game extends Scene
         this.pathfindingEngine = new PathfindingEngine(this.dungeon, this.turnEngine);
         this.visionEngine = new VisionEngine(this.dungeon);
         this.turnEngine.setVisionEngine(this.visionEngine);
+        this.skillEngine = new SkillEngine({
+            movementManager: this.movementManager,
+            pathfindingEngine: this.pathfindingEngine,
+            turnEngine: this.turnEngine,
+            combatEngine: this.combatEngine,
+            animationEngine: this.animationEngine,
+            specialEffectManager: this.specialEffectManager,
+            logEngine: uiContext.logEngine,
+            visionEngine: this.visionEngine
+        });
+        registerCoreSkills(this.skillEngine);
+        this.playerSkillManager = new PlayerSkillManager({ skillEngine: this.skillEngine });
+        this.playerSkillMechanismManager = new PlayerSkillMechanismManager({
+            skillEngine: this.skillEngine,
+            playerSkillManager: this.playerSkillManager,
+            monsterProvider: () => this.monsterManager?.getMonsters() ?? [],
+            visionEngine: this.visionEngine
+        });
+        this.skillAiManager = new SkillAiManager({
+            skillEngine: this.skillEngine,
+            visionEngine: this.visionEngine,
+            pathfindingEngine: this.pathfindingEngine
+        });
         this.itemEngine = createDefaultItemEngine();
         this.inventoryEngine = createSharedInventory(48);
         this.equipmentEngine = createEquipmentEngine();
@@ -177,6 +206,10 @@ export class Game extends Scene
         );
         this.cameras.main.startFollow(this.player.sprite, false, 0.12, 0.12);
         this.minimap?.updatePlayerPosition(spawnTile);
+        this.playerSkillManager?.bindPlayer(this.player);
+        this.playerSkillMechanismManager?.bindPlayer(this.player);
+        this.playerSkillManager?.learnSkill('charge');
+        this.skillBookPanel?.refresh();
     }
 
     initializeStatusPanels()
@@ -199,13 +232,11 @@ export class Game extends Scene
             unitProvider: () => this.getNavigableUnits()
         }), { mode: 'layer', title: '장비 관리' });
 
-        this.statusManager.registerPanel('skills', (container) => {
-            container.innerHTML = '';
-            const notice = document.createElement('div');
-            notice.className = 'ui-status-card ui-status-player';
-            notice.textContent = '스킬 북이 준비 중입니다.';
-            container.appendChild(notice);
-        }, { mode: 'layer', title: '스킬 북' });
+        this.skillBookPanel = this.statusManager.registerPanel('skills', (container) => new SkillBookPanel({
+            container,
+            skillEngine: this.skillEngine,
+            playerSkillManager: this.playerSkillManager
+        }), { mode: 'layer', title: '스킬 북' });
     }
 
     initializePartySystems()
@@ -221,11 +252,14 @@ export class Game extends Scene
             movementManager: this.movementManager,
             formationManager: this.partyFormationManager,
             aiManager: this.partyAiManager,
+            skillAiManager: this.skillAiManager,
             classManager: this.classManager,
             statManager: this.statManager,
             logEngine: uiContext.logEngine,
             minimap: this.minimap,
-            equipmentEngine: this.equipmentEngine
+            equipmentEngine: this.equipmentEngine,
+            skillEngine: this.skillEngine,
+            turnEngine: this.turnEngine
         });
 
         this.registerPartyPanels();
@@ -288,6 +322,10 @@ export class Game extends Scene
 
     translateKeyToAction(keyCode)
     {
+        const skillAction = this.playerSkillMechanismManager?.translateKeyToSkill(keyCode);
+        if (skillAction) {
+            return skillAction;
+        }
         switch (keyCode) {
         case 'ArrowLeft':
             return { type: 'move', dx: -1, dy: 0 };

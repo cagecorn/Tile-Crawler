@@ -12,11 +12,13 @@ export class PartyEngine {
         movementManager,
         formationManager,
         aiManager,
+        skillAiManager,
         classManager,
         statManager,
         logEngine,
         minimap,
-        equipmentEngine
+        equipmentEngine,
+        skillEngine
     }) {
         this.scene = scene;
         this.player = player;
@@ -28,11 +30,14 @@ export class PartyEngine {
         this.movementManager = movementManager;
         this.formationManager = formationManager;
         this.aiManager = aiManager;
+        this.skillAiManager = skillAiManager;
         this.classManager = classManager;
         this.statManager = statManager;
         this.logEngine = logEngine;
         this.minimap = minimap;
         this.equipmentEngine = equipmentEngine;
+        this.skillEngine = skillEngine;
+        this.turnEngine = turnEngine;
 
         this.activeLimit = 6;
         this.reserveLimit = 2;
@@ -52,10 +57,19 @@ export class PartyEngine {
     }
 
     planTurn(player, monsters) {
-        if (!this.aiManager) {
-            return;
-        }
-        this.aiManager.planTurn(this.activeMembers, player, monsters);
+        const living = this.activeMembers.filter((member) => member?.isAlive?.());
+        living.forEach((member) => {
+            const skillAction = this.skillAiManager?.decide(member, monsters);
+            if (skillAction) {
+                this.turnEngine?.queueAction(member, skillAction);
+                return;
+            }
+
+            const action = this.aiManager?.decide(member, player, monsters);
+            if (action) {
+                this.turnEngine?.queueAction(member, action);
+            }
+        });
     }
 
     hireSentinel() {
@@ -77,6 +91,8 @@ export class PartyEngine {
             movementManager: this.movementManager,
             stats
         });
+
+        this.skillEngine?.grantSkillToUnit(sentinel, 'charge');
 
         const accepted = this.addMember(sentinel);
         if (accepted) {
