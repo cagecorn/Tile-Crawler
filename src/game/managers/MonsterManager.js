@@ -28,7 +28,7 @@ export class MonsterManager {
 
     spawnZombies() {
         const rooms = this.dungeon.rooms.slice(1);
-        const spawnCount = Math.max(4, Math.min(10, Math.floor(rooms.length / 2)));
+        const spawnCount = Math.max(8, Math.min(16, Math.floor((rooms.length * 3) / 4)));
 
         for (let i = 0; i < spawnCount; i++) {
             if (rooms.length === 0) {
