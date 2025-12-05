@@ -112,6 +112,7 @@ export class Unit {
 
         this.turnEngine?.updateUnitPosition(this, target);
         this.tilePosition = target;
+        this.scene?.events.emit('unit-moved', { unit: this, tile: target });
         return this.animationEngine.moveToTile(this.sprite, target, this.tileSize).then(() => true);
     }
 

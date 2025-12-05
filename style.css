@@ -26,6 +26,14 @@ body {
     gap: 12px;
 }
 
+.ui-play-space {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
 #game-container {
     width: 100%;
     height: min(calc(100vh - 240px), 720px);
@@ -39,6 +47,49 @@ body {
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
     overflow: hidden;
     margin: 0 auto;
+}
+
+.ui-minimap-panel {
+    position: relative;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(135deg, rgba(18, 24, 38, 0.9), rgba(10, 12, 18, 0.9));
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+    min-width: 180px;
+    max-width: 260px;
+}
+
+.ui-minimap-title {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 8px;
+}
+
+.ui-minimap-viewport {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #0c1016;
+    min-height: 140px;
+}
+
+.ui-minimap-ready canvas {
+    display: block;
+}
+
+.ui-minimap-player {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fcd34d;
+    box-shadow: 0 0 8px rgba(252, 211, 77, 0.8);
+    transform: translate(-50%, -50%);
+    transition: transform 120ms ease;
+    z-index: 2;
 }
 
 .ui-top-bar {

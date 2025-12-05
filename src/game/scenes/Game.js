@@ -13,6 +13,8 @@ import { ClassManager } from '../managers/ClassManager.js';
 import { StatManager } from '../managers/StatManager.js';
 import { MonsterManager } from '../managers/MonsterManager.js';
 import { PlayerUnit } from '../units/Player.js';
+import { MinimapEngine } from '../engine/MinimapEngine.js';
+import { uiContext } from '../engine/UiContext.js';
 
 export class Game extends Scene
 {
@@ -41,6 +43,8 @@ export class Game extends Scene
         this.turnEngine.setCombatEngine(this.combatEngine);
         this.pathfindingEngine = new PathfindingEngine(this.dungeon, this.turnEngine);
         this.visionEngine = new VisionEngine(this.dungeon);
+
+        this.createMinimap();
 
         const mapLayer = this.add.layer();
         for (let y = 0; y < dungeon.height; y++) {
@@ -79,6 +83,7 @@ export class Game extends Scene
         });
         this.monsterManager.spawnZombies();
         this.registerInput();
+        this.trackPlayerOnMinimap();
     }
 
     enableCameraDrag ()
@@ -123,6 +128,7 @@ export class Game extends Scene
             this.turnEngine
         );
         this.cameras.main.startFollow(this.player.sprite, false, 0.12, 0.12);
+        this.minimap?.updatePlayerPosition(spawnTile);
     }
 
     pickSpawnTile()
@@ -181,5 +187,30 @@ export class Game extends Scene
         if (this.specialEffectManager) {
             this.specialEffectManager.update();
         }
+    }
+
+    createMinimap()
+    {
+        if (!uiContext.minimapViewport) {
+            return;
+        }
+
+        this.minimap = new MinimapEngine({
+            container: uiContext.minimapViewport,
+            dungeon: this.dungeon
+        });
+    }
+
+    trackPlayerOnMinimap()
+    {
+        if (!this.minimap) {
+            return;
+        }
+
+        this.events.on('unit-moved', ({ unit, tile }) => {
+            if (unit === this.player) {
+                this.minimap.updatePlayerPosition(tile);
+            }
+        });
     }
 }
