@@ -58,6 +58,10 @@ export class Unit {
         return this.stats.sightRange ?? 0;
     }
 
+    getAttackRange() {
+        return this.stats.attackRange ?? 0;
+    }
+
     isAlive() {
         return this.currentHealth > 0;
     }

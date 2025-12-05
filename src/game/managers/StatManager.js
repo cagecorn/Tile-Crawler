@@ -14,7 +14,8 @@ const DEFAULT_STATS = {
     accuracy: 85,
     actionPoints: 2,
     movePoints: 4,
-    critChance: 10
+    critChance: 10,
+    attackRange: 1
 };
 
 export class StatManager {
@@ -42,7 +43,8 @@ export class StatManager {
             accuracy: merged.accuracy,
             actionPoints: merged.actionPoints,
             movePoints: merged.movePoints,
-            critChance: merged.critChance
+            critChance: merged.critChance,
+            attackRange: merged.attackRange
         };
     }
 }

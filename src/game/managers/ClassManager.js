@@ -21,7 +21,8 @@ export class ClassManager {
                     accuracy: 92,
                     actionPoints: 2,
                     movePoints: 4,
-                    critChance: 12
+                    critChance: 12,
+                    attackRange: 1
                 }
             },
             sentinel: {
@@ -43,7 +44,8 @@ export class ClassManager {
                     accuracy: 90,
                     actionPoints: 2,
                     movePoints: 3,
-                    critChance: 10
+                    critChance: 10,
+                    attackRange: 1
                 }
             }
         };

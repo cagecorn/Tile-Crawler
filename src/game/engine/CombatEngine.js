@@ -18,10 +18,14 @@ export class CombatEngine {
 
     async resolveEngagement(unitA, unitB) {
         const attackers = this.actionOrderEngine.orderUnits([unitA, unitB]);
+        const distance = this.distance(unitA.tilePosition, unitB.tilePosition);
 
         for (const attacker of attackers) {
             const defender = attacker === unitA ? unitB : unitA;
             if (!attacker.isAlive() || !defender.isAlive()) {
+                continue;
+            }
+            if (!this.canAttack(attacker, defender, distance)) {
                 continue;
             }
             const damage = this.calculateDamage(attacker, defender);
@@ -45,6 +49,22 @@ export class CombatEngine {
         this.particleAnimationEngine?.sprayBlood(defender.sprite);
         this.textAnimationEngine?.showDamage(defender.sprite, damage);
         this.logEngine?.log(`${attacker.getName()}가 ${defender.getName()}에게 ${damage}의 피해를 주었습니다.`);
+    }
+
+    canAttack(attacker, defender, distance) {
+        if (!attacker || !defender) {
+            return false;
+        }
+
+        const range = attacker.getAttackRange?.() ?? 0;
+        return range > 0 && distance <= range;
+    }
+
+    distance(a, b) {
+        if (!a || !b) {
+            return Number.POSITIVE_INFINITY;
+        }
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
     }
 }
 
