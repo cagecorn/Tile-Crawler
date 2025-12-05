@@ -60,10 +60,15 @@ export class DomEngine {
 
     createLayerRoot ()
     {
+        const existingRoot = document.querySelector('.ui-layer-root');
+        if (existingRoot) {
+            return existingRoot;
+        }
+
         const layerRoot = document.createElement('div');
         layerRoot.className = 'ui-layer-root';
 
-        this.root.appendChild(layerRoot);
+        document.body.appendChild(layerRoot);
 
         return layerRoot;
     }

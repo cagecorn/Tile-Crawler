@@ -7,18 +7,20 @@ export class TextAnimationEngine {
         color = '#ffecec',
         stroke = '#7f0000',
         duration = 650,
-        rise = 28
+        rise = 28,
+        fontSize = '22px',
+        strokeThickness = 3
     } = {}) {
         if (!target || !message) {
             return;
         }
 
         const text = this.scene.add.text(target.x, target.y - target.displayHeight / 2, message, {
-            fontSize: '18px',
+            fontSize,
             fontFamily: 'Arial Black, Arial, sans-serif',
             color,
             stroke,
-            strokeThickness: 2,
+            strokeThickness,
             align: 'center'
         });
 
@@ -39,8 +41,10 @@ export class TextAnimationEngine {
         this.showFloatingText(`${amount}`, target, {
             color: '#ffdede',
             stroke: '#8b0000',
-            duration: 540,
-            rise: 32
+            duration: 720,
+            rise: 40,
+            fontSize: '28px',
+            strokeThickness: 4
         });
     }
 }
