@@ -85,6 +85,38 @@ body {
     min-height: 140px;
 }
 
+.ui-minimap-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.ui-hire-button {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(72, 199, 116, 0.6);
+    color: #c8ffd9;
+    background: linear-gradient(135deg, rgba(24, 54, 32, 0.9), rgba(32, 84, 48, 0.85));
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.ui-hire-button:hover,
+.ui-hire-button:focus-visible {
+    outline: none;
+    transform: translateY(-1px);
+    border-color: rgba(96, 231, 143, 0.8);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(96, 231, 143, 0.4);
+}
+
+.ui-hire-button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
 .ui-minimap-ready canvas {
     display: block;
 }

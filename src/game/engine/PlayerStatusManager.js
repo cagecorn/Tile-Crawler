@@ -121,6 +121,7 @@ export class PlayerStatusManager {
             { key: 'accuracy', label: '정확도' },
             { key: 'actionPoints', label: '행동력' },
             { key: 'movePoints', label: '이동력' },
+            { key: 'sightRange', label: '시야' },
             { key: 'critChance', label: '치명타율' }
         ];
 
@@ -264,6 +265,7 @@ export class PlayerStatusManager {
             accuracy: baseStats.accuracy ?? 0,
             actionPoints: baseStats.actionPoints ?? 0,
             movePoints: baseStats.movePoints ?? baseStats.mobility ?? 0,
+            sightRange: baseStats.sightRange ?? 0,
             critChance: baseStats.critChance ?? 0,
             level,
             experience,
@@ -290,6 +292,7 @@ export class PlayerStatusManager {
             accuracy: `${stats.accuracy}%`,
             actionPoints: stats.actionPoints,
             movePoints: stats.movePoints,
+            sightRange: stats.sightRange,
             critChance: `${stats.critChance}%`
         };
 

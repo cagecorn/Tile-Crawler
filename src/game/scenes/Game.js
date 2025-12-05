@@ -19,6 +19,12 @@ import { PlayerStatusManager } from '../engine/PlayerStatusManager.js';
 import { ParticleAnimationEngine } from '../engine/ParticleAnimationEngine.js';
 import { TextAnimationEngine } from '../engine/TextAnimationEngine.js';
 import { PlayerVitalsWidget } from '../engine/PlayerVitalsWidget.js';
+import { MovementManager } from '../managers/MovementManager.js';
+import { PartyEngine } from '../managers/PartyEngine.js';
+import { PartyFormationManager } from '../managers/PartyFormationManager.js';
+import { PartyAiManager } from '../managers/PartyAiManager.js';
+import { MercenaryRosterPanel } from '../engine/MercenaryRosterPanel.js';
+import { UnitStatusPanel } from '../engine/UnitStatusPanel.js';
 
 export class Game extends Scene
 {
@@ -41,10 +47,12 @@ export class Game extends Scene
         this.textAnimationEngine = new TextAnimationEngine(this);
         this.actionOrderEngine = new ActionOrderEngine();
         this.turnEngine = new TurnEngine(this.actionOrderEngine);
+        this.movementManager = new MovementManager({ turnEngine: this.turnEngine });
         this.offscreenEngine = new OffscreenEngine(this);
         this.specialEffectManager = new SpecialEffectManager(this, this.offscreenEngine);
         this.statManager = new StatManager();
         this.classManager = new ClassManager(this.statManager);
+        this.turnEngine.setMovementManager(this.movementManager);
         this.combatEngine = new CombatEngine({
             turnEngine: this.turnEngine,
             specialEffectManager: this.specialEffectManager,
@@ -55,6 +63,19 @@ export class Game extends Scene
         this.turnEngine.setCombatEngine(this.combatEngine);
         this.pathfindingEngine = new PathfindingEngine(this.dungeon, this.turnEngine);
         this.visionEngine = new VisionEngine(this.dungeon);
+        this.partyFormationManager = new PartyFormationManager({
+            turnEngine: this.turnEngine,
+            dungeon: this.dungeon,
+            tileSize: this.tileSize,
+            pathfindingEngine: this.pathfindingEngine
+        });
+        this.partyAiManager = new PartyAiManager({
+            pathfindingEngine: this.pathfindingEngine,
+            visionEngine: this.visionEngine,
+            turnEngine: this.turnEngine,
+            formationManager: this.partyFormationManager,
+            movementManager: this.movementManager
+        });
 
         this.createMinimap();
         this.initializeStatusPanels();
@@ -85,6 +106,7 @@ export class Game extends Scene
         this.setupPlayer();
         this.initializeVitalsWidget();
         this.playerStatusPanel?.bindPlayer(this.player);
+        this.initializePartySystems();
         this.monsterManager = new MonsterManager({
             scene: this,
             dungeon: this.dungeon,
@@ -94,7 +116,8 @@ export class Game extends Scene
             turnEngine: this.turnEngine,
             statManager: this.statManager,
             pathfindingEngine: this.pathfindingEngine,
-            visionEngine: this.visionEngine
+            visionEngine: this.visionEngine,
+            movementManager: this.movementManager
         });
         this.monsterManager.spawnZombies();
         this.registerInput();
@@ -140,7 +163,8 @@ export class Game extends Scene
             this.dungeon,
             this.classManager,
             this.specialEffectManager,
-            this.turnEngine
+            this.turnEngine,
+            this.movementManager
         );
         this.cameras.main.startFollow(this.player.sprite, false, 0.12, 0.12);
         this.minimap?.updatePlayerPosition(spawnTile);
@@ -156,6 +180,37 @@ export class Game extends Scene
         this.playerStatusPanel = this.statusManager.registerPanel('player', (container) => new PlayerStatusManager({
             container
         }), { mode: 'layer', title: '플레이어 스테이터스' });
+
+        this.statusManager.registerPanel('skills', (container) => {
+            container.innerHTML = '';
+            const notice = document.createElement('div');
+            notice.className = 'ui-status-card ui-status-player';
+            notice.textContent = '스킬 북이 준비 중입니다.';
+            container.appendChild(notice);
+        }, { mode: 'layer', title: '스킬 북' });
+    }
+
+    initializePartySystems()
+    {
+        this.partyEngine = new PartyEngine({
+            scene: this,
+            player: this.player,
+            dungeon: this.dungeon,
+            tileSize: this.tileSize,
+            animationEngine: this.animationEngine,
+            specialEffectManager: this.specialEffectManager,
+            turnEngine: this.turnEngine,
+            movementManager: this.movementManager,
+            formationManager: this.partyFormationManager,
+            aiManager: this.partyAiManager,
+            classManager: this.classManager,
+            statManager: this.statManager,
+            logEngine: uiContext.logEngine,
+            minimap: this.minimap
+        });
+
+        this.registerPartyPanels();
+        this.registerHireButton();
     }
 
     pickSpawnTile()
@@ -201,6 +256,7 @@ export class Game extends Scene
             }
 
             this.turnEngine.queueAction(this.player, action);
+            this.partyEngine?.planTurn(this.player, this.monsterManager?.getMonsters() ?? []);
             this.monsterManager.planTurn(this.player);
             this.turnEngine.resolveTurn();
         });
@@ -265,5 +321,44 @@ export class Game extends Scene
         });
 
         this.minimap.setMonsterPositions(this.monsterManager?.getMonsters() ?? []);
+    }
+
+    registerPartyPanels()
+    {
+        if (!this.statusManager || !this.partyEngine) {
+            return;
+        }
+
+        this.mercenaryRosterPanel = this.statusManager.registerPanel('mercenaries', (container) => new MercenaryRosterPanel({
+            container,
+            partyEngine: this.partyEngine,
+            onSelect: (unit) => this.showMercenaryStatus(unit)
+        }), { mode: 'layer', title: '용병 관리' });
+
+        this.mercenaryStatusPanel = this.statusManager.registerPanel('mercenary-status', (container) => new UnitStatusPanel({
+            container
+        }), { mode: 'layer', title: '용병 스테이터스' });
+    }
+
+    registerHireButton()
+    {
+        const hireButton = uiContext.hireSentinelButton ?? null;
+        if (!hireButton || !this.partyEngine) {
+            return;
+        }
+
+        hireButton.addEventListener('click', () => {
+            this.partyEngine.hireSentinel();
+            this.mercenaryRosterPanel?.refresh();
+        });
+    }
+
+    showMercenaryStatus(unit)
+    {
+        if (!unit || !this.mercenaryStatusPanel) {
+            return;
+        }
+        this.mercenaryStatusPanel.bindUnit(unit);
+        this.statusManager?.show('mercenary-status');
     }
 }

@@ -24,6 +24,7 @@ export class DomEngine {
             topBar,
             topButtons: this.topButtons,
             minimapViewport: minimapPanel.querySelector('.ui-minimap-viewport'),
+            hireButton: minimapPanel.hireButton,
             logViewport: logPanel.querySelector('.ui-log-scroll'),
             playerStatusContainer: statusColumn,
             actionSlotContainer: actionColumn,
@@ -119,10 +120,25 @@ export class DomEngine {
         const viewport = document.createElement('div');
         viewport.className = 'ui-minimap-viewport';
 
+        const controls = document.createElement('div');
+        controls.className = 'ui-minimap-controls';
+
+        const hireButton = document.createElement('button');
+        hireButton.type = 'button';
+        hireButton.className = 'ui-hire-button';
+        hireButton.textContent = '센티넬 고용';
+        hireButton.title = '센티넬을 고용하여 플레이어 주변에 배치';
+        hireButton.setAttribute('aria-label', '센티넬을 고용하여 플레이어 주변에 배치');
+
+        controls.appendChild(hireButton);
+
         minimapPanel.appendChild(title);
         minimapPanel.appendChild(viewport);
+        minimapPanel.appendChild(controls);
 
         this.infoRow.appendChild(minimapPanel);
+
+        minimapPanel.hireButton = hireButton;
 
         return minimapPanel;
     }

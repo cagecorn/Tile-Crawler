@@ -7,7 +7,7 @@ import { StatusManager } from './game/engine/StatusManager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const domEngine = new DomEngine('game-container');
-    const { logViewport, minimapViewport, playerStatusContainer, topButtons, layerRoot } = domEngine.bootstrap({ buttonCount: 5 });
+    const { logViewport, minimapViewport, playerStatusContainer, topButtons, layerRoot, hireButton } = domEngine.bootstrap({ buttonCount: 5 });
 
     const layerManager = new LayerManager({ root: layerRoot });
     const statusManager = new StatusManager({ layerManager });
@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     uiContext.playerStatusContainer = playerStatusContainer;
     uiContext.layerManager = layerManager;
     uiContext.statusManager = statusManager;
+    uiContext.hireSentinelButton = hireButton;
 
     const logEngine = new LogEngine(logViewport);
 
@@ -32,6 +33,28 @@ document.addEventListener('DOMContentLoaded', () => {
         playerButton.addEventListener('click', () => {
             statusManager.show('player');
             highlightTopButton(playerButton, topButtons);
+        });
+    }
+
+    const skillButton = topButtons?.[1];
+    if (skillButton) {
+        skillButton.textContent = '[스킬]';
+        skillButton.title = '스킬 북 열기';
+        skillButton.setAttribute('aria-label', '스킬 북 열기');
+        skillButton.addEventListener('click', () => {
+            statusManager.show('skills');
+            highlightTopButton(skillButton, topButtons);
+        });
+    }
+
+    const mercenaryButton = topButtons?.[2];
+    if (mercenaryButton) {
+        mercenaryButton.textContent = '[용병]';
+        mercenaryButton.title = '용병 목록 열기';
+        mercenaryButton.setAttribute('aria-label', '용병 목록 열기');
+        mercenaryButton.addEventListener('click', () => {
+            statusManager.show('mercenaries');
+            highlightTopButton(mercenaryButton, topButtons);
         });
     }
 

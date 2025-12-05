@@ -11,7 +11,8 @@ export class MonsterManager {
         turnEngine,
         statManager,
         pathfindingEngine,
-        visionEngine
+        visionEngine,
+        movementManager
     }) {
         this.scene = scene;
         this.dungeon = dungeon;
@@ -22,6 +23,7 @@ export class MonsterManager {
         this.statManager = statManager;
         this.pathfindingEngine = pathfindingEngine;
         this.visionEngine = visionEngine;
+        this.movementManager = movementManager;
         this.zombies = [];
         this.behaviorTree = new ZombieBehaviorTree(this.pathfindingEngine, this.visionEngine, this.turnEngine);
     }
@@ -60,6 +62,7 @@ export class MonsterManager {
                 dungeon: this.dungeon,
                 specialEffectManager: this.specialEffectManager,
                 turnEngine: this.turnEngine,
+                movementManager: this.movementManager,
                 stats
             });
 

@@ -9,6 +9,7 @@ export class Unit {
         dungeon,
         specialEffectManager,
         turnEngine,
+        movementManager,
         textureKey,
         stats,
         faction,
@@ -20,6 +21,7 @@ export class Unit {
         this.dungeon = dungeon;
         this.specialEffectManager = specialEffectManager;
         this.turnEngine = turnEngine;
+        this.movementManager = movementManager;
         this.stats = stats;
         this.faction = faction;
         this.name = name ?? textureKey;
@@ -122,6 +124,9 @@ export class Unit {
         }
 
         if (action.type === 'move') {
+            if (this.movementManager) {
+                return this.movementManager.handleMoveAction(this, action);
+            }
             return this.attemptMove(action.dx, action.dy);
         }
 
