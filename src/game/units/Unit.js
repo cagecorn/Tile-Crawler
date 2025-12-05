@@ -183,6 +183,7 @@ export class Unit {
 
         const traversed = [];
         let swapRequest = null;
+        let pendingEngagement = null;
 
         for (const { dx = 0, dy = 0 } of steps) {
             const target = { x: this.tilePosition.x + dx, y: this.tilePosition.y + dy };
@@ -193,8 +194,8 @@ export class Unit {
             const occupant = this.turnEngine?.getUnitAt(target);
             if (occupant && occupant !== this) {
                 if (occupant.faction !== this.faction) {
-                    await this.turnEngine.engageUnits(this, occupant);
-                    return traversed.length;
+                    pendingEngagement = occupant;
+                    break;
                 }
                 if (this.canSwapWith(occupant)) {
                     swapRequest = occupant;
@@ -208,14 +209,15 @@ export class Unit {
             traversed.push({ ...target });
         }
 
-        if (!traversed.length && !swapRequest) {
-            return 0;
-        }
-
         if (traversed.length) {
             const finalTile = traversed[traversed.length - 1];
             this.scene?.events.emit('unit-moved', { unit: this, tile: finalTile });
             await this.animationEngine.moveAlongPath(this.sprite, traversed, this.tileSize);
+        }
+
+        if (pendingEngagement) {
+            await this.turnEngine.engageUnits(this, pendingEngagement);
+            return traversed.length;
         }
 
         if (swapRequest) {
