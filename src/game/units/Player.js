@@ -17,5 +17,15 @@ export class PlayerUnit extends Unit {
             faction: 'allies',
             name: '플레이어'
         });
+
+        this.isPlayer = true;
+    }
+
+    canSwapWith(otherUnit) {
+        if (!otherUnit || otherUnit === this) {
+            return false;
+        }
+
+        return otherUnit.faction === this.faction && Boolean(otherUnit.isMercenary);
     }
 }

@@ -72,6 +72,21 @@ export class TurnEngine {
         this.positions.set(this.key(newTile), unit);
     }
 
+    swapUnitPositions(unitA, unitB) {
+        if (!unitA || !unitB) {
+            return;
+        }
+
+        const keyA = this.key(unitA.tilePosition);
+        const keyB = this.key(unitB.tilePosition);
+
+        this.positions.delete(keyA);
+        this.positions.delete(keyB);
+
+        this.positions.set(keyA, unitB);
+        this.positions.set(keyB, unitA);
+    }
+
     engageUnits(unitA, unitB) {
         if (!this.combatEngine) {
             return Promise.resolve();
