@@ -91,10 +91,33 @@ export class TurnEngine {
         if (!this.combatEngine) {
             return Promise.resolve();
         }
+        if (!this.isWithinAttackRange(unitA, unitB)) {
+            return Promise.resolve(false);
+        }
         return this.combatEngine.resolveEngagement(unitA, unitB);
     }
 
     key(tile) {
         return `${tile.x},${tile.y}`;
+    }
+
+    isWithinAttackRange(attacker, defender) {
+        if (!attacker || !defender) {
+            return false;
+        }
+
+        const range = attacker.getAttackRange?.() ?? 0;
+        if (range <= 0) {
+            return false;
+        }
+
+        return this.distance(attacker.tilePosition, defender.tilePosition) <= range;
+    }
+
+    distance(a, b) {
+        if (!a || !b) {
+            return Number.POSITIVE_INFINITY;
+        }
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
     }
 }

@@ -51,7 +51,8 @@ export class MonsterManager {
                 defense: 6,
                 mobility: 3,
                 actionSpeed: 7,
-                sightRange: 9
+                sightRange: 9,
+                attackRange: 1
             });
 
             const zombie = new ZombieUnit({
