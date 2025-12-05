@@ -7,6 +7,7 @@ export class TurnEngine {
         this.actionOrderEngine = actionOrderEngine;
         this.combatEngine = null;
         this.movementManager = null;
+        this.visionEngine = null;
     }
 
     setCombatEngine(combatEngine) {
@@ -15,6 +16,10 @@ export class TurnEngine {
 
     setMovementManager(movementManager) {
         this.movementManager = movementManager;
+    }
+
+    setVisionEngine(visionEngine) {
+        this.visionEngine = visionEngine;
     }
 
     registerUnit(unit) {
@@ -111,7 +116,16 @@ export class TurnEngine {
             return false;
         }
 
-        return this.distance(attacker.tilePosition, defender.tilePosition) <= range;
+        const distance = this.distance(attacker.tilePosition, defender.tilePosition);
+        if (distance > range) {
+            return false;
+        }
+
+        if (!this.visionEngine) {
+            return true;
+        }
+
+        return this.visionEngine.canSee(attacker.tilePosition, defender.tilePosition, range);
     }
 
     distance(a, b) {
