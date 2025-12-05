@@ -6,16 +6,22 @@ export class TurnEngine {
         this.positions = new Map();
         this.actionOrderEngine = actionOrderEngine;
         this.combatEngine = null;
+        this.movementManager = null;
     }
 
     setCombatEngine(combatEngine) {
         this.combatEngine = combatEngine;
     }
 
+    setMovementManager(movementManager) {
+        this.movementManager = movementManager;
+    }
+
     registerUnit(unit) {
         this.units.add(unit);
         const key = this.key(unit.tilePosition);
         this.positions.set(key, unit);
+        this.movementManager?.registerUnit(unit);
     }
 
     unregisterUnit(unit) {
@@ -25,6 +31,7 @@ export class TurnEngine {
                 this.positions.delete(key);
             }
         }
+        this.movementManager?.unregisterUnit(unit);
     }
 
     queueAction(unit, action) {
@@ -43,6 +50,8 @@ export class TurnEngine {
         const actions = [...this.pendingActions.entries()].map(([unit, action]) => ({ unit, action }));
         this.pendingActions.clear();
         const orderedActions = this.actionOrderEngine?.orderActions(actions) ?? actions;
+
+        this.movementManager?.beginTurn(this.units);
 
         const actionPromises = orderedActions.map(({ unit, action }) => unit.performAction(action));
         await Promise.all(actionPromises);

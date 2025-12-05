@@ -23,6 +23,28 @@ export class ClassManager {
                     movePoints: 4,
                     critChance: 12
                 }
+            },
+            sentinel: {
+                key: 'sentinel',
+                displayName: '센티넬',
+                stats: {
+                    health: 240,
+                    mana: 40,
+                    attack: 14,
+                    defense: 20,
+                    mobility: 3,
+                    actionSpeed: 9,
+                    sightRange: 9,
+                    level: 1,
+                    experience: 0,
+                    magicAttack: 6,
+                    magicDefense: 16,
+                    evasion: 8,
+                    accuracy: 90,
+                    actionPoints: 2,
+                    movePoints: 3,
+                    critChance: 10
+                }
             }
         };
     }

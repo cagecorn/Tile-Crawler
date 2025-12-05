@@ -1,7 +1,7 @@
 import { Unit } from './Unit.js';
 
 export class ZombieUnit extends Unit {
-    constructor({ scene, startTile, tileSize, animationEngine, dungeon, specialEffectManager, turnEngine, stats }) {
+    constructor({ scene, startTile, tileSize, animationEngine, dungeon, specialEffectManager, turnEngine, movementManager, stats }) {
         super({
             scene,
             startTile,
@@ -10,6 +10,7 @@ export class ZombieUnit extends Unit {
                 dungeon,
                 specialEffectManager,
                 turnEngine,
+                movementManager,
                 textureKey: 'zombie',
                 stats,
                 faction: 'undead',

@@ -36,6 +36,7 @@ export class Preloader extends Scene
         this.load.image('wall-tile-1', 'images/map-tiles/wall-tile-1.png');
         this.load.image('player', 'images/unit/warrior.png');
         this.load.image('zombie', 'images/monster/zombie.png');
+        this.load.image('sentinel', 'images/unit/sentinel.png');
     }
 
     create ()
