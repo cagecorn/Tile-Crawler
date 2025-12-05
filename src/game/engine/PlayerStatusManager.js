@@ -143,7 +143,9 @@ export class PlayerStatusManager {
             { key: 'actionPoints', label: '행동력' },
             { key: 'movePoints', label: '이동력' },
             { key: 'sightRange', label: '시야' },
-            { key: 'critChance', label: '치명타율' }
+            { key: 'critChance', label: '치명타율' },
+            { key: 'healthRegen', label: '체력 재생' },
+            { key: 'manaRegen', label: '마나 재생' }
         ];
 
         statDefinitions.forEach(({ key, label }) => {
@@ -361,7 +363,9 @@ export class PlayerStatusManager {
             actionPoints: stats.actionPoints,
             movePoints: stats.movePoints,
             sightRange: stats.sightRange,
-            critChance: `${stats.critChance}%`
+            critChance: `${stats.critChance}%`,
+            healthRegen: stats.healthRegen,
+            manaRegen: stats.manaRegen
         };
 
         Object.entries(entries).forEach(([key, value]) => {

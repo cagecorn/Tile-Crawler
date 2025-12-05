@@ -35,6 +35,7 @@ import { PlayerSkillManager } from '../skills/PlayerSkillManager.js';
 import { PlayerSkillMechanismManager } from '../skills/PlayerSkillMechanismManager.js';
 import { SkillAiManager } from '../skills/SkillAiManager.js';
 import { SkillBookPanel } from '../engine/SkillBookPanel.js';
+import { TurnCounterEngine } from '../engine/TurnCounterEngine.js';
 
 export class Game extends Scene
 {
@@ -56,7 +57,8 @@ export class Game extends Scene
         this.particleAnimationEngine = new ParticleAnimationEngine(this);
         this.textAnimationEngine = new TextAnimationEngine(this);
         this.actionOrderEngine = new ActionOrderEngine();
-        this.turnEngine = new TurnEngine(this.actionOrderEngine);
+        this.turnCounterEngine = new TurnCounterEngine();
+        this.turnEngine = new TurnEngine(this.actionOrderEngine, this.turnCounterEngine);
         this.movementManager = new MovementManager({ turnEngine: this.turnEngine });
         this.offscreenEngine = new OffscreenEngine(this);
         this.specialEffectManager = new SpecialEffectManager(this, this.offscreenEngine);
@@ -78,6 +80,7 @@ export class Game extends Scene
             movementManager: this.movementManager,
             pathfindingEngine: this.pathfindingEngine,
             turnEngine: this.turnEngine,
+            turnCounterEngine: this.turnCounterEngine,
             combatEngine: this.combatEngine,
             animationEngine: this.animationEngine,
             specialEffectManager: this.specialEffectManager,
@@ -209,6 +212,7 @@ export class Game extends Scene
         this.playerSkillManager?.bindPlayer(this.player);
         this.playerSkillMechanismManager?.bindPlayer(this.player);
         this.playerSkillManager?.learnSkill('charge');
+        this.playerSkillManager?.assignToSlot?.('KeyQ', 'charge');
         this.skillBookPanel?.refresh();
     }
 
@@ -298,10 +302,15 @@ export class Game extends Scene
             return;
         }
 
-        this.playerVitalsWidget = new PlayerVitalsWidget({ container });
+        this.playerVitalsWidget = new PlayerVitalsWidget({
+            container,
+            skillManager: this.playerSkillManager,
+            skillEngine: this.skillEngine
+        });
         if (this.player) {
             this.playerVitalsWidget.bindPlayer(this.player);
         }
+        this.playerVitalsWidget.bindSkillManager(this.playerSkillManager, this.skillEngine);
     }
 
     registerInput()

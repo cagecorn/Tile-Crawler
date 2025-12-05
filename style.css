@@ -283,6 +283,13 @@ body {
     gap: 10px;
 }
 
+.ui-vitals-body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-items: start;
+}
+
 .ui-vitals-title {
     font-size: 12px;
     letter-spacing: 0.12em;
@@ -347,6 +354,88 @@ body {
     line-height: 1;
     color: rgba(255, 255, 255, 0.9);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.ui-skill-slot-column {
+    display: grid;
+    gap: 8px;
+}
+
+.ui-skill-title {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+}
+
+.ui-skill-slots {
+    display: grid;
+    gap: 8px;
+}
+
+.ui-skill-slot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.ui-skill-slot.is-filled {
+    border-color: rgba(96, 165, 250, 0.35);
+    box-shadow: 0 6px 14px rgba(96, 165, 250, 0.25);
+}
+
+.ui-skill-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.ui-skill-icon.is-empty::after {
+    content: '?';
+}
+
+.ui-skill-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ui-skill-name {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ui-skill-keycap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .ui-actions-column {

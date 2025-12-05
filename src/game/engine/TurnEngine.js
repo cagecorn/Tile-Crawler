@@ -1,5 +1,5 @@
 export class TurnEngine {
-    constructor(actionOrderEngine) {
+    constructor(actionOrderEngine, turnCounterEngine = null) {
         this.units = new Set();
         this.pendingActions = new Map();
         this.resolving = false;
@@ -10,6 +10,7 @@ export class TurnEngine {
         this.visionEngine = null;
         this.actionResolver = null;
         this.turnCount = 0;
+        this.turnCounterEngine = turnCounterEngine;
     }
 
     setCombatEngine(combatEngine) {
@@ -26,6 +27,10 @@ export class TurnEngine {
 
     setActionResolver(actionResolver) {
         this.actionResolver = actionResolver;
+    }
+
+    setTurnCounterEngine(turnCounterEngine) {
+        this.turnCounterEngine = turnCounterEngine;
     }
 
     registerUnit(unit) {
@@ -70,6 +75,7 @@ export class TurnEngine {
         });
         await Promise.all(actionPromises);
         this.turnCount += 1;
+        this.turnCounterEngine?.advanceTurn({ units: this.units });
         this.resolving = false;
     }
 

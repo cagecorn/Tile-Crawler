@@ -15,7 +15,9 @@ const DEFAULT_STATS = {
     actionPoints: 2,
     movePoints: 4,
     critChance: 10,
-    attackRange: 1
+    attackRange: 1,
+    healthRegen: 2,
+    manaRegen: 1
 };
 
 export class StatManager {
@@ -44,7 +46,9 @@ export class StatManager {
             actionPoints: merged.actionPoints,
             movePoints: merged.movePoints,
             critChance: merged.critChance,
-            attackRange: merged.attackRange
+            attackRange: merged.attackRange,
+            healthRegen: merged.healthRegen,
+            manaRegen: merged.manaRegen
         };
     }
 }

@@ -58,12 +58,14 @@ export const chargeSkill = {
             return false;
         }
 
-        engine.createAfterimageTrail(user, path);
         const deltas = engine.toDeltas(path);
         const traversed = await user.attemptPath(deltas);
         if (traversed <= 0) {
             return false;
         }
+
+        const traveledPath = path.slice(0, traversed + 1);
+        engine.createAfterimageTrail(user, traveledPath);
 
         const baseDamage = combatEngine?.calculateDamage?.(user, target) ?? 0;
         const damage = Math.max(1, Math.floor(baseDamage * this.damageMultiplier));
