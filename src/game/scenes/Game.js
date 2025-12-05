@@ -9,6 +9,7 @@ import { CombatEngine } from '../engine/CombatEngine.js';
 import { PathfindingEngine } from '../engine/PathfindingEngine.js';
 import { VisionEngine } from '../engine/VisionEngine.js';
 import { ActionOrderEngine } from '../engine/ActionOrderEngine.js';
+import { MinimapEngine } from '../engine/MinimapEngine.js';
 import { ClassManager } from '../managers/ClassManager.js';
 import { StatManager } from '../managers/StatManager.js';
 import { MonsterManager } from '../managers/MonsterManager.js';
@@ -63,9 +64,16 @@ export class Game extends Scene
         this.cameras.main.centerOn(worldWidth / 2, worldHeight / 2);
         this.cameras.main.setZoom(cameraConfig.defaultZoom);
 
+        this.minimapEngine = new MinimapEngine({
+            scene: this,
+            dungeon: this.dungeon,
+            label: 'FLOOR 1'
+        });
+
         this.enableCameraDrag();
         this.enableCameraZoom(cameraConfig);
         this.setupPlayer();
+        this.minimapEngine.updatePlayerPosition(this.player.tilePosition);
         this.monsterManager = new MonsterManager({
             scene: this,
             dungeon: this.dungeon,
@@ -180,6 +188,10 @@ export class Game extends Scene
     {
         if (this.specialEffectManager) {
             this.specialEffectManager.update();
+        }
+
+        if (this.minimapEngine && this.player) {
+            this.minimapEngine.updatePlayerPosition(this.player.tilePosition);
         }
     }
 }
