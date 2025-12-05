@@ -9,6 +9,7 @@ export class MinimapEngine {
         this.markerLayer = null;
         this.playerMarker = null;
         this.monsterMarkers = new Map();
+        this.allyMarkers = new Map();
 
         this.setupViewport();
     }
@@ -21,6 +22,7 @@ export class MinimapEngine {
         this.container.innerHTML = '';
         this.container.classList.add('ui-minimap-ready');
         this.monsterMarkers.clear();
+        this.allyMarkers.clear();
 
         this.canvas = document.createElement('canvas');
         this.container.appendChild(this.canvas);
@@ -103,12 +105,43 @@ export class MinimapEngine {
         });
     }
 
+    setAllies(allies = []) {
+        if (!this.markerLayer) {
+            return;
+        }
+
+        const activeAllies = new Set();
+        allies.forEach((unit) => {
+            if (!unit) {
+                return;
+            }
+            const marker = this.getOrCreateAllyMarker(unit);
+            this.positionMarker(marker, unit.tilePosition);
+            activeAllies.add(unit);
+        });
+
+        this.allyMarkers.forEach((marker, unit) => {
+            if (!activeAllies.has(unit)) {
+                marker.remove();
+                this.allyMarkers.delete(unit);
+            }
+        });
+    }
+
     updateMonsterPosition(monster, tilePosition) {
         if (!monster || !tilePosition) {
             return;
         }
 
         const marker = this.getOrCreateMonsterMarker(monster);
+        this.positionMarker(marker, tilePosition);
+    }
+
+    updateAllyPosition(unit, tilePosition) {
+        if (!unit || !tilePosition) {
+            return;
+        }
+        const marker = this.getOrCreateAllyMarker(unit);
         this.positionMarker(marker, tilePosition);
     }
 
@@ -127,6 +160,19 @@ export class MinimapEngine {
         return this.monsterMarkers.get(monster);
     }
 
+    getOrCreateAllyMarker(unit) {
+        if (!this.markerLayer) {
+            return null;
+        }
+        if (!this.allyMarkers.has(unit)) {
+            const marker = document.createElement('div');
+            marker.className = 'ui-minimap-ally';
+            this.allyMarkers.set(unit, marker);
+            this.markerLayer.appendChild(marker);
+        }
+        return this.allyMarkers.get(unit);
+    }
+
     removeMonster(monster) {
         const marker = this.monsterMarkers.get(monster);
         if (!marker) {
@@ -135,6 +181,15 @@ export class MinimapEngine {
 
         marker.remove();
         this.monsterMarkers.delete(monster);
+    }
+
+    removeAlly(unit) {
+        const marker = this.allyMarkers.get(unit);
+        if (!marker) {
+            return;
+        }
+        marker.remove();
+        this.allyMarkers.delete(unit);
     }
 
     positionMarker(marker, tilePosition) {

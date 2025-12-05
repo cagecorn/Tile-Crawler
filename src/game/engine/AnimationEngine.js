@@ -17,6 +17,30 @@ export class AnimationEngine {
         });
     }
 
+    moveAlongPath(sprite, tiles, tileSize, durationPerStep = 120) {
+        if (!Array.isArray(tiles) || tiles.length === 0) {
+            return Promise.resolve();
+        }
+
+        const tweens = tiles.map((tile, index) => {
+            const target = this.tileToWorldPosition(tile, tileSize);
+            return {
+                x: target.x,
+                y: target.y,
+                duration: Math.max(60, durationPerStep - index * 6),
+                ease: 'Sine.easeInOut'
+            };
+        });
+
+        return new Promise((resolve) => {
+            this.scene.tweens.timeline({
+                targets: sprite,
+                tweens,
+                onComplete: resolve
+            });
+        });
+    }
+
     tileToWorldPosition(tile, tileSize) {
         return {
             x: tile.x * tileSize + tileSize / 2,

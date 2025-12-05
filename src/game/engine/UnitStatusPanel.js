@@ -58,10 +58,14 @@ export class UnitStatusPanel {
         const statDefinitions = [
             { key: 'attack', label: '물리 공격력' },
             { key: 'defense', label: '물리 방어력' },
+            { key: 'magicAttack', label: '마법 공격력' },
             { key: 'magicDefense', label: '마법 방어력' },
             { key: 'movePoints', label: '이동력' },
             { key: 'actionSpeed', label: '행동 속도' },
-            { key: 'sightRange', label: '시야' }
+            { key: 'sightRange', label: '시야' },
+            { key: 'accuracy', label: '정확도' },
+            { key: 'evasion', label: '회피' },
+            { key: 'critChance', label: '치명타' }
         ];
 
         statDefinitions.forEach(({ key, label }) => {
@@ -129,10 +133,14 @@ export class UnitStatusPanel {
         const entries = {
             attack: stats.attack ?? 0,
             defense: stats.defense ?? 0,
+            magicAttack: stats.magicAttack ?? stats.attack ?? 0,
             magicDefense: stats.magicDefense ?? stats.defense ?? 0,
             movePoints: stats.movePoints ?? stats.mobility ?? 0,
             actionSpeed: stats.actionSpeed ?? 0,
-            sightRange: stats.sightRange ?? 0
+            sightRange: stats.sightRange ?? 0,
+            accuracy: stats.accuracy ?? 0,
+            evasion: stats.evasion ?? 0,
+            critChance: stats.critChance ?? 0
         };
 
         Object.entries(entries).forEach(([key, value]) => {

@@ -15,7 +15,8 @@ export class PartyEngine {
         classManager,
         statManager,
         logEngine,
-        minimap
+        minimap,
+        equipmentEngine
     }) {
         this.scene = scene;
         this.player = player;
@@ -31,6 +32,7 @@ export class PartyEngine {
         this.statManager = statManager;
         this.logEngine = logEngine;
         this.minimap = minimap;
+        this.equipmentEngine = equipmentEngine;
 
         this.activeLimit = 6;
         this.reserveLimit = 2;
@@ -100,6 +102,7 @@ export class PartyEngine {
             return false;
         }
 
+        this.equipmentEngine?.registerUnit(unit);
         this.scene?.events.emit('unit-moved', { unit, tile: unit.tilePosition });
         this.notifyChange();
         return true;
@@ -112,5 +115,13 @@ export class PartyEngine {
             activeLimit: this.activeLimit,
             reserveLimit: this.reserveLimit
         };
+    }
+
+    getPartyOrder(includePlayer = true) {
+        const units = [];
+        if (includePlayer && this.player) {
+            units.push(this.player);
+        }
+        return units.concat(this.activeMembers, this.reserveMembers);
     }
 }

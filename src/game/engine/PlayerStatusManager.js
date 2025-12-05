@@ -3,6 +3,10 @@ export class PlayerStatusManager {
         this.container = container;
         this.player = null;
         this.events = null;
+        this.navigator = null;
+        this.navLabel = null;
+        this.equipmentSlots = [];
+        this.equipmentEngine = null;
 
         this.healthBarFill = null;
         this.healthBarText = null;
@@ -59,9 +63,22 @@ export class PlayerStatusManager {
         const name = document.createElement('div');
         name.className = 'ui-status-name';
         name.textContent = '플레이어 · 전사';
+        this.navLabel = name;
 
         const meta = document.createElement('div');
         meta.className = 'ui-status-meta';
+
+        const prevButton = document.createElement('button');
+        prevButton.type = 'button';
+        prevButton.className = 'ui-cycle-button';
+        prevButton.textContent = '←';
+        prevButton.addEventListener('click', () => this.navigate(-1));
+
+        const nextButton = document.createElement('button');
+        nextButton.type = 'button';
+        nextButton.className = 'ui-cycle-button';
+        nextButton.textContent = '→';
+        nextButton.addEventListener('click', () => this.navigate(1));
 
         const levelLabel = document.createElement('span');
         levelLabel.textContent = 'Lv.';
@@ -78,7 +95,11 @@ export class PlayerStatusManager {
         meta.append(levelLabel, this.levelValue, document.createTextNode(' · '), expLabel, this.experienceValue);
         textWrapper.append(name, meta);
 
-        header.append(portrait, textWrapper);
+        const navWrapper = document.createElement('div');
+        navWrapper.className = 'ui-nav-buttons';
+        navWrapper.append(prevButton, nextButton);
+
+        header.append(portrait, textWrapper, navWrapper);
 
         return header;
     }
@@ -179,6 +200,9 @@ export class PlayerStatusManager {
             const slot = document.createElement('div');
             slot.className = 'ui-slot';
             slot.textContent = '빈 공간';
+            if (titleText === '장비') {
+                this.equipmentSlots.push(slot);
+            }
             grid.appendChild(slot);
         }
 
@@ -211,6 +235,10 @@ export class PlayerStatusManager {
     }
 
     bindPlayer(player) {
+        return this.bindUnit(player);
+    }
+
+    bindUnit(player) {
         if (!player) {
             return;
         }
@@ -231,6 +259,40 @@ export class PlayerStatusManager {
         this.refreshFromPlayer();
     }
 
+    setNavigator(provider) {
+        this.navigator = provider;
+        this.refreshNavigation();
+    }
+
+    refreshNavigation() {
+        const units = this.navigator?.() ?? [];
+        if (!this.player && units.length) {
+            this.bindUnit(units[0]);
+            return;
+        }
+        if (this.player && units.includes(this.player)) {
+            this.refreshFromPlayer();
+            return;
+        }
+        if (units.length) {
+            this.bindUnit(units[0]);
+        }
+    }
+
+    navigate(delta) {
+        const units = this.navigator?.() ?? [];
+        if (!this.player || units.length === 0) {
+            return;
+        }
+        const index = units.indexOf(this.player);
+        if (index === -1) {
+            this.bindUnit(units[0]);
+            return;
+        }
+        const nextIndex = (index + delta + units.length) % units.length;
+        this.bindUnit(units[nextIndex]);
+    }
+
     refresh() {
         this.refreshFromPlayer();
     }
@@ -247,6 +309,12 @@ export class PlayerStatusManager {
         this.updateMeta(stats);
         this.updateStatValues(stats);
         this.updateEffects();
+        this.renderEquipment();
+
+        if (this.navLabel) {
+            const className = this.player.className ?? '전사';
+            this.navLabel.textContent = `${this.player.getName?.() ?? '플레이어'} · ${className}`;
+        }
     }
 
     gatherStats() {
@@ -309,6 +377,35 @@ export class PlayerStatusManager {
         }
 
         this.effectList.textContent = '활성 효과 없음';
+    }
+
+    setEquipmentEngine(engine) {
+        this.equipmentEngine = engine;
+        this.renderEquipment();
+    }
+
+    renderEquipment() {
+        if (!this.equipmentEngine || !this.player || this.equipmentSlots.length === 0) {
+            return;
+        }
+
+        const loadout = this.equipmentEngine.getLoadout(this.player);
+        const slotKeys = Object.keys(loadout);
+        this.equipmentSlots.forEach((slot, index) => {
+            const slotKey = slotKeys[index] ?? `slot-${index + 1}`;
+            const item = loadout[slotKey] ?? null;
+            slot.innerHTML = '';
+            slot.classList.toggle('is-filled', Boolean(item));
+            slot.title = slotKey;
+            if (item) {
+                const name = document.createElement('div');
+                name.className = 'ui-stat-value';
+                name.textContent = item.name;
+                slot.appendChild(name);
+            } else {
+                slot.textContent = '빈 공간';
+            }
+        });
     }
 
     onHealthChanged({ unit, current, max }) {

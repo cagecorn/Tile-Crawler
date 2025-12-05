@@ -128,7 +128,8 @@ body {
 }
 
 .ui-minimap-player,
-.ui-minimap-monster {
+.ui-minimap-monster,
+.ui-minimap-ally {
     position: absolute;
     width: 8px;
     height: 8px;
@@ -146,6 +147,11 @@ body {
 .ui-minimap-monster {
     background: #fb7185;
     box-shadow: 0 0 10px rgba(251, 113, 133, 0.9);
+}
+
+.ui-minimap-ally {
+    background: #60a5fa;
+    box-shadow: 0 0 10px rgba(96, 165, 250, 0.9);
 }
 
 .ui-top-bar {
@@ -534,6 +540,73 @@ body {
     background: rgba(255, 255, 255, 0.02);
     font-size: 12px;
     text-align: center;
+}
+
+.ui-equipment-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.ui-equipment-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ui-equipment-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ui-inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.ui-item-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    cursor: grab;
+}
+
+.ui-item-chip img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.ui-cycle-button {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    cursor: pointer;
+}
+
+.ui-cycle-button:hover,
+.ui-cycle-button:focus-visible {
+    border-color: rgba(255, 255, 255, 0.45);
+    outline: none;
+}
+
+.ui-nav-buttons {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.ui-equipment-header {
+    align-items: center;
 }
 
 .ui-layer-root {
