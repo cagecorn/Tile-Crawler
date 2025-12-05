@@ -15,21 +15,21 @@ export class ParticleAnimationEngine {
 
         const graphics = this.scene.add.graphics();
         graphics.fillStyle(0x8b0000, 1);
-        graphics.fillEllipse(6, 6, 10, 6);
-        graphics.generateTexture(this.textureKey, 12, 12);
+        graphics.fillEllipse(10, 10, 18, 12);
+        graphics.generateTexture(this.textureKey, 20, 20);
         graphics.destroy();
     }
 
     createEmitter() {
         this.bloodEmitter = this.scene.add.particles(0, 0, this.textureKey, {
             on: false,
-            lifespan: { min: 220, max: 420 },
-            speed: { min: 70, max: 160 },
+            lifespan: { min: 280, max: 520 },
+            speed: { min: 90, max: 180 },
             angle: { min: 220, max: 320 },
             gravityY: 420,
-            scale: { start: 0.9, end: 0.2 },
+            scale: { start: 1.4, end: 0.35 },
             alpha: { start: 0.9, end: 0 },
-            quantity: 10,
+            quantity: 12,
             blendMode: 'NORMAL'
         });
 
@@ -41,6 +41,6 @@ export class ParticleAnimationEngine {
             return;
         }
 
-        this.bloodEmitter.explode(12, target.x, target.y);
+        this.bloodEmitter.explode(16, target.x, target.y);
     }
 }
