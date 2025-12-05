@@ -32,13 +32,15 @@ export class AnimationEngine {
             };
         });
 
-        return new Promise((resolve) => {
-            this.scene.tweens.timeline({
-                targets: sprite,
-                tweens,
-                onComplete: resolve
-            });
-        });
+        return tweens.reduce((sequence, tweenConfig) => {
+            return sequence.then(() => new Promise((resolve) => {
+                this.scene.tweens.add({
+                    targets: sprite,
+                    ...tweenConfig,
+                    onComplete: resolve
+                });
+            }));
+        }, Promise.resolve());
     }
 
     tileToWorldPosition(tile, tileSize) {
