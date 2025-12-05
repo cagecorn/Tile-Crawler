@@ -163,15 +163,7 @@ export class EquipmentPanel {
         }
         const label = document.createElement('span');
         label.textContent = item.name;
-        wrapper.title = '상세 보기';
-        wrapper.addEventListener('click', () => window.open(item.icon, '_blank'));
-        wrapper.addEventListener('mouseenter', () => {
-            if (wrapper.dataset.previewed === 'true') {
-                return;
-            }
-            wrapper.dataset.previewed = 'true';
-            window.open(item.icon, '_blank');
-        });
+        wrapper.title = item.description ?? '상세 보기';
         wrapper.appendChild(label);
         wrapper.draggable = true;
         wrapper.addEventListener('dragstart', (event) => this.beginDrag(event, { type: 'item', item }));
