@@ -94,6 +94,8 @@ export class PartyEngine {
             return false;
         }
 
+        unit.isMercenary = true;
+
         if (this.activeMembers.length < this.activeLimit) {
             this.activeMembers.push(unit);
         } else if (this.reserveMembers.length < this.reserveLimit) {

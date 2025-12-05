@@ -160,6 +160,9 @@ export class Unit {
             if (occupant.faction !== this.faction) {
                 return this.turnEngine.engageUnits(this, occupant);
             }
+            if (this.canSwapWith(occupant)) {
+                return this.swapPositionsWith(occupant);
+            }
             return Promise.resolve(false);
         }
 
@@ -169,12 +172,13 @@ export class Unit {
         return this.animationEngine.moveToTile(this.sprite, target, this.tileSize).then(() => true);
     }
 
-    attemptPath(steps = []) {
+    async attemptPath(steps = []) {
         if (!Array.isArray(steps) || steps.length === 0) {
-            return Promise.resolve(0);
+            return 0;
         }
 
         const traversed = [];
+        let swapRequest = null;
 
         for (const { dx = 0, dy = 0 } of steps) {
             const target = { x: this.tilePosition.x + dx, y: this.tilePosition.y + dy };
@@ -185,7 +189,12 @@ export class Unit {
             const occupant = this.turnEngine?.getUnitAt(target);
             if (occupant && occupant !== this) {
                 if (occupant.faction !== this.faction) {
-                    return this.turnEngine.engageUnits(this, occupant).then(() => traversed.length);
+                    await this.turnEngine.engageUnits(this, occupant);
+                    return traversed.length;
+                }
+                if (this.canSwapWith(occupant)) {
+                    swapRequest = occupant;
+                    break;
                 }
                 break;
             }
@@ -195,13 +204,22 @@ export class Unit {
             traversed.push({ ...target });
         }
 
-        if (!traversed.length) {
-            return Promise.resolve(0);
+        if (!traversed.length && !swapRequest) {
+            return 0;
         }
 
-        const finalTile = traversed[traversed.length - 1];
-        this.scene?.events.emit('unit-moved', { unit: this, tile: finalTile });
-        return this.animationEngine.moveAlongPath(this.sprite, traversed, this.tileSize).then(() => traversed.length);
+        if (traversed.length) {
+            const finalTile = traversed[traversed.length - 1];
+            this.scene?.events.emit('unit-moved', { unit: this, tile: finalTile });
+            await this.animationEngine.moveAlongPath(this.sprite, traversed, this.tileSize);
+        }
+
+        if (swapRequest) {
+            const swapped = await this.swapPositionsWith(swapRequest);
+            return swapped ? traversed.length + 1 : traversed.length;
+        }
+
+        return traversed.length;
     }
 
     isWalkable(tile) {
@@ -226,6 +244,30 @@ export class Unit {
             current: this.currentMana,
             max: this.maxMana
         });
+    }
+
+    canSwapWith() {
+        return false;
+    }
+
+    swapPositionsWith(otherUnit) {
+        if (!otherUnit || !this.turnEngine) {
+            return Promise.resolve(false);
+        }
+
+        const origin = { ...this.tilePosition };
+        const destination = { ...otherUnit.tilePosition };
+
+        this.turnEngine.swapUnitPositions(this, otherUnit);
+        this.tilePosition = destination;
+        otherUnit.tilePosition = origin;
+
+        this.scene?.events.emit('unit-moved', { unit: this, tile: destination });
+        this.scene?.events.emit('unit-moved', { unit: otherUnit, tile: origin });
+
+        const moveThis = this.animationEngine.moveToTile(this.sprite, destination, this.tileSize);
+        const moveOther = this.animationEngine.moveToTile(otherUnit.sprite, origin, otherUnit.tileSize);
+        return Promise.all([moveThis, moveOther]).then(() => true);
     }
 }
 
