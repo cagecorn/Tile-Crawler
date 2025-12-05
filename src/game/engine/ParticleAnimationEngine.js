@@ -25,7 +25,7 @@ export class ParticleAnimationEngine {
         this.particles = this.scene.add.particles(this.textureKey);
         this.particles.setDepth(18);
 
-        this.bloodEmitter = this.particles.createEmitter({
+        this.bloodEmitter = this.particles.addEmitter({
             on: false,
             lifespan: { min: 220, max: 420 },
             speed: { min: 70, max: 160 },
