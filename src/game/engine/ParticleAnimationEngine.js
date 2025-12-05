@@ -2,7 +2,6 @@ export class ParticleAnimationEngine {
     constructor(scene) {
         this.scene = scene;
         this.textureKey = 'blood-particle';
-        this.particles = null;
         this.bloodEmitter = null;
 
         this.ensureTexture();
@@ -22,10 +21,7 @@ export class ParticleAnimationEngine {
     }
 
     createEmitter() {
-        this.particles = this.scene.add.particles(this.textureKey);
-        this.particles.setDepth(18);
-
-        this.bloodEmitter = this.particles.addEmitter({
+        this.bloodEmitter = this.scene.add.particles(0, 0, this.textureKey, {
             on: false,
             lifespan: { min: 220, max: 420 },
             speed: { min: 70, max: 160 },
@@ -36,6 +32,8 @@ export class ParticleAnimationEngine {
             quantity: 10,
             blendMode: 'NORMAL'
         });
+
+        this.bloodEmitter.setDepth(18);
     }
 
     sprayBlood(target) {
