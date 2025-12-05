@@ -7,13 +7,14 @@ export class ZombieUnit extends Unit {
             startTile,
             tileSize,
             animationEngine,
-            dungeon,
-            specialEffectManager,
-            turnEngine,
-            textureKey: 'zombie',
-            stats,
-            faction: 'undead'
-        });
+                dungeon,
+                specialEffectManager,
+                turnEngine,
+                textureKey: 'zombie',
+                stats,
+                faction: 'undead',
+                name: '좀비'
+            });
 
         this.spawnAnchor = { ...startTile };
         this.awake = false;

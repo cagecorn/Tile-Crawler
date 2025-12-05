@@ -13,7 +13,8 @@ export class PlayerUnit extends Unit {
             turnEngine,
             textureKey: 'player',
             stats,
-            faction: 'allies'
+            faction: 'allies',
+            name: '플레이어'
         });
     }
 }

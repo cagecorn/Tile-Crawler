@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const logEngine = new LogEngine(logViewport);
 
+    uiContext.logEngine = logEngine;
+
     logEngine.log('로그 엔진이 초기화되었습니다.');
     logEngine.log('파티를 배치할 준비가 되었습니다.');
 

@@ -16,6 +16,8 @@ import { PlayerUnit } from '../units/Player.js';
 import { MinimapEngine } from '../engine/MinimapEngine.js';
 import { uiContext } from '../engine/UiContext.js';
 import { PlayerStatusManager } from '../engine/PlayerStatusManager.js';
+import { ParticleAnimationEngine } from '../engine/ParticleAnimationEngine.js';
+import { TextAnimationEngine } from '../engine/TextAnimationEngine.js';
 
 export class Game extends Scene
 {
@@ -34,13 +36,21 @@ export class Game extends Scene
         this.tileSize = tileSize;
 
         this.animationEngine = new AnimationEngine(this);
+        this.particleAnimationEngine = new ParticleAnimationEngine(this);
+        this.textAnimationEngine = new TextAnimationEngine(this);
         this.actionOrderEngine = new ActionOrderEngine();
         this.turnEngine = new TurnEngine(this.actionOrderEngine);
         this.offscreenEngine = new OffscreenEngine(this);
         this.specialEffectManager = new SpecialEffectManager(this, this.offscreenEngine);
         this.statManager = new StatManager();
         this.classManager = new ClassManager(this.statManager);
-        this.combatEngine = new CombatEngine(this.turnEngine, this.specialEffectManager);
+        this.combatEngine = new CombatEngine({
+            turnEngine: this.turnEngine,
+            specialEffectManager: this.specialEffectManager,
+            particleAnimationEngine: this.particleAnimationEngine,
+            textAnimationEngine: this.textAnimationEngine,
+            logEngine: uiContext.logEngine
+        });
         this.turnEngine.setCombatEngine(this.combatEngine);
         this.pathfindingEngine = new PathfindingEngine(this.dungeon, this.turnEngine);
         this.visionEngine = new VisionEngine(this.dungeon);
@@ -229,6 +239,12 @@ export class Game extends Scene
 
             if (unit.faction === 'undead') {
                 this.minimap.updateMonsterPosition(unit, tile);
+            }
+        });
+
+        this.events.on('unit-died', ({ unit }) => {
+            if (unit.faction === 'undead') {
+                this.minimap.removeMonster(unit);
             }
         });
 

@@ -127,6 +127,16 @@ export class MinimapEngine {
         return this.monsterMarkers.get(monster);
     }
 
+    removeMonster(monster) {
+        const marker = this.monsterMarkers.get(monster);
+        if (!marker) {
+            return;
+        }
+
+        marker.remove();
+        this.monsterMarkers.delete(monster);
+    }
+
     positionMarker(marker, tilePosition) {
         if (!marker || !tilePosition) {
             return;
