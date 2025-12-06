@@ -24,12 +24,10 @@ function createMockUnit({ name, currentHealth, maxHealth, currentMana, maxMana, 
     };
 }
 
-export function runDebugRegenTest({ regenManager, logger = console } = {}) {
+export function runDebugRegenTest({ regenManager } = {}) {
     if (!regenManager) {
         return { success: false, reason: 'regenManager missing' };
     }
-
-    const log = logger?.log ? logger.log.bind(logger) : console.log;
 
     const units = [
         createMockUnit({
@@ -76,12 +74,6 @@ export function runDebugRegenTest({ regenManager, logger = console } = {}) {
     });
 
     const success = results.every((result) => result.matches);
-    log('[디버그 리젠 테스트]', success ? '성공' : '실패');
-    results.forEach((result) => {
-        log(
-            `${result.name} ▶ 체력 ${result.current.health}/${result.expected?.health}, 마나 ${result.current.mana}/${result.expected?.mana}`
-        );
-    });
 
     return { success, results };
 }

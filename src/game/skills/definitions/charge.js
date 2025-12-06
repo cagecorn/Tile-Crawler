@@ -5,9 +5,9 @@ export const chargeSkill = {
     icon: 'assets/images/skills/charge.png',
     manaCost: 10,
     cooldown: 3,
-    range: { min: 4, max: 6 },
+    range: { min: 1, max: 6 },
     damageMultiplier: 1.35,
-    description: '4~6타일 밖의 적에게 잔상을 남기며 돌진, 135% 물리 피해와 강한 충돌 효과를 가한다.',
+    description: '근접~6타일 밖의 적에게 잔상을 남기며 돌진, 135% 물리 피해와 강한 충돌 효과를 가한다.',
     aiHint: {
         role: 'gapclose',
         priority: 'burst'
