@@ -51,6 +51,31 @@ export class ClassManager {
                     critChance: 10,
                     attackRange: 1
                 }
+            },
+            medic: {
+                key: 'medic',
+                displayName: '메딕',
+                stats: {
+                    health: 140,
+                    mana: 120,
+                    healthRegen: 4,
+                    manaRegen: 6,
+                    attack: 8,
+                    defense: 8,
+                    mobility: 4,
+                    actionSpeed: 11,
+                    sightRange: 11,
+                    level: 1,
+                    experience: 0,
+                    magicAttack: 18,
+                    magicDefense: 12,
+                    evasion: 14,
+                    accuracy: 96,
+                    actionPoints: 2,
+                    movePoints: 4,
+                    critChance: 8,
+                    attackRange: 1
+                }
             }
         };
     }

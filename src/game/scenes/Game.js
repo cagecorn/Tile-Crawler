@@ -93,7 +93,8 @@ export class Game extends Scene
             animationEngine: this.animationEngine,
             specialEffectManager: this.specialEffectManager,
             logEngine: uiContext.logEngine,
-            visionEngine: this.visionEngine
+            visionEngine: this.visionEngine,
+            textAnimationEngine: this.textAnimationEngine
         });
         registerCoreSkills(this.skillEngine);
         this.playerSkillManager = new PlayerSkillManager({ skillEngine: this.skillEngine });
@@ -101,7 +102,8 @@ export class Game extends Scene
             skillEngine: this.skillEngine,
             playerSkillManager: this.playerSkillManager,
             monsterProvider: () => this.monsterManager?.getMonsters() ?? [],
-            visionEngine: this.visionEngine
+            visionEngine: this.visionEngine,
+            allyProvider: () => this.getNavigableUnits()
         });
         this.skillAiManager = new SkillAiManager({
             skillEngine: this.skillEngine,
@@ -224,6 +226,8 @@ export class Game extends Scene
         this.playerSkillMechanismManager?.bindPlayer(this.player);
         this.playerSkillManager?.learnSkill('charge');
         this.playerSkillManager?.assignToSlot?.('KeyQ', 'charge');
+        this.playerSkillManager?.learnSkill('heal');
+        this.playerSkillManager?.assignToSlot?.('KeyW', 'heal');
         this.skillBookPanel?.refresh();
     }
 
@@ -434,13 +438,19 @@ export class Game extends Scene
 
     registerHireButton()
     {
-        const hireButton = uiContext.hireSentinelButton ?? null;
-        if (!hireButton || !this.partyEngine) {
+        const sentinelButton = uiContext.hireSentinelButton ?? null;
+        const medicButton = uiContext.hireMedicButton ?? null;
+        if ((!sentinelButton && !medicButton) || !this.partyEngine) {
             return;
         }
 
-        hireButton.addEventListener('click', () => {
+        sentinelButton?.addEventListener('click', () => {
             this.partyEngine.hireSentinel();
+            this.mercenaryRosterPanel?.refresh();
+        });
+
+        medicButton?.addEventListener('click', () => {
+            this.partyEngine.hireMedic();
             this.mercenaryRosterPanel?.refresh();
         });
     }

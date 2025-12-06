@@ -1,14 +1,19 @@
 export class PlayerSkillMechanismManager {
-    constructor({ skillEngine, playerSkillManager, monsterProvider, visionEngine }) {
+    constructor({ skillEngine, playerSkillManager, monsterProvider, visionEngine, allyProvider }) {
         this.skillEngine = skillEngine;
         this.playerSkillManager = playerSkillManager;
         this.monsterProvider = monsterProvider;
         this.visionEngine = visionEngine;
         this.player = null;
+        this.allyProvider = allyProvider;
     }
 
     bindPlayer(player) {
         this.player = player;
+    }
+
+    setAllyProvider(allyProvider) {
+        this.allyProvider = allyProvider;
     }
 
     translateKeyToSkill(keyCode) {
@@ -23,9 +28,11 @@ export class PlayerSkillMechanismManager {
         }
 
         const enemies = this.monsterProvider?.() ?? [];
+        const allies = this.allyProvider?.() ?? [];
         const targetUnit = skill.selectTarget?.({
             user: this.player,
             enemies,
+            allies,
             visionEngine: this.visionEngine
         });
 
