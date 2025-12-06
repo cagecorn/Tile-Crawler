@@ -47,4 +47,15 @@ export class TextAnimationEngine {
             strokeThickness: 4
         });
     }
+
+    showHeal(target, amount) {
+        this.showFloatingText(`+${amount}`, target, {
+            color: '#d1ffef',
+            stroke: '#0f6e4f',
+            duration: 720,
+            rise: 34,
+            fontSize: '26px',
+            strokeThickness: 4
+        });
+    }
 }

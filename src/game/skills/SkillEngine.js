@@ -8,7 +8,8 @@ export class SkillEngine {
         animationEngine,
         specialEffectManager,
         logEngine,
-        visionEngine
+        visionEngine,
+        textAnimationEngine
     } = {}) {
         this.movementManager = movementManager;
         this.pathfindingEngine = pathfindingEngine;
@@ -19,6 +20,7 @@ export class SkillEngine {
         this.specialEffectManager = specialEffectManager;
         this.logEngine = logEngine;
         this.visionEngine = visionEngine;
+        this.textAnimationEngine = textAnimationEngine;
 
         this.skills = new Map();
         this.unitSkills = new WeakMap();
@@ -122,6 +124,7 @@ export class SkillEngine {
             animationEngine: this.animationEngine,
             specialEffectManager: this.specialEffectManager,
             visionEngine: this.visionEngine,
+            textAnimationEngine: this.textAnimationEngine,
             logEngine: this.logEngine,
             turnEngine: this.turnEngine
         };

@@ -1,3 +1,4 @@
+import { MedicUnit } from '../units/Medic.js';
 import { SentinelUnit } from '../units/Sentinel.js';
 
 export class PartyEngine {
@@ -58,14 +59,15 @@ export class PartyEngine {
 
     planTurn(player, monsters) {
         const living = this.activeMembers.filter((member) => member?.isAlive?.());
+        const allies = [player, ...living].filter(Boolean);
         living.forEach((member) => {
-            const skillAction = this.skillAiManager?.decide(member, monsters);
+            const skillAction = this.skillAiManager?.decide(member, monsters, { allies });
             if (skillAction) {
                 this.turnEngine?.queueAction(member, skillAction);
                 return;
             }
 
-            const action = this.aiManager?.decide(member, player, monsters);
+            const action = this.aiManager?.decide(member, player, monsters, allies);
             if (action) {
                 this.turnEngine?.queueAction(member, action);
             }
@@ -101,6 +103,39 @@ export class PartyEngine {
         } else {
             this.logEngine?.log('용병 자리가 부족합니다.');
             sentinel.handleDeath();
+        }
+        return accepted;
+    }
+
+    hireMedic() {
+        if (!this.player) {
+            return null;
+        }
+
+        const spawnTile = this.formationManager?.findSpawnTileNear(this.player.tilePosition, { minDistance: 1, maxDistance: 3 }) ?? this.player.tilePosition;
+        const stats = this.classManager?.createStatsForClass('medic') ?? this.statManager?.createStats({}) ?? {};
+
+        const medic = new MedicUnit({
+            scene: this.scene,
+            startTile: spawnTile,
+            tileSize: this.tileSize,
+            animationEngine: this.animationEngine,
+            dungeon: this.dungeon,
+            specialEffectManager: this.specialEffectManager,
+            turnEngine: this.turnEngine,
+            movementManager: this.movementManager,
+            stats
+        });
+
+        this.skillEngine?.grantSkillToUnit(medic, 'heal');
+
+        const accepted = this.addMember(medic);
+        if (accepted) {
+            this.logEngine?.log('메딕이 합류했습니다. 후방에서 회복을 지원합니다.');
+            this.notifyChange();
+        } else {
+            this.logEngine?.log('용병 자리가 부족합니다.');
+            medic.handleDeath();
         }
         return accepted;
     }

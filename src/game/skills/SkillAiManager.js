@@ -1,4 +1,5 @@
 import { ChargeAiNode } from './nodes/ChargeAiNode.js';
+import { HealAiNode } from './nodes/HealAiNode.js';
 
 export class SkillAiManager {
     constructor({ skillEngine, visionEngine, pathfindingEngine }) {
@@ -7,11 +8,12 @@ export class SkillAiManager {
         this.pathfindingEngine = pathfindingEngine;
 
         this.nodes = {
-            charge: new ChargeAiNode({ skillEngine, visionEngine, pathfindingEngine })
+            charge: new ChargeAiNode({ skillEngine, visionEngine, pathfindingEngine }),
+            heal: new HealAiNode({ skillEngine, visionEngine })
         };
     }
 
-    decide(unit, enemies = []) {
+    decide(unit, enemies = [], { allies = [] } = {}) {
         if (!unit || !this.skillEngine) {
             return null;
         }
@@ -19,7 +21,7 @@ export class SkillAiManager {
         const skills = this.skillEngine.getUnitSkills(unit, 'active');
         for (const skillId of skills) {
             const node = this.nodes[skillId];
-            const action = node?.decide(unit, enemies);
+            const action = node?.decide(unit, enemies, { allies });
             if (action) {
                 return action;
             }

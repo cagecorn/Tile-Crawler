@@ -88,6 +88,7 @@ body {
 .ui-minimap-controls {
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
     margin-top: 8px;
 }
 
@@ -115,6 +116,12 @@ body {
 .ui-hire-button:active {
     transform: translateY(0);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.ui-hire-button--medic {
+    border-color: rgba(100, 186, 214, 0.7);
+    color: #d9f6ff;
+    background: linear-gradient(135deg, rgba(24, 46, 60, 0.9), rgba(40, 96, 116, 0.85));
 }
 
 .ui-minimap-ready canvas {

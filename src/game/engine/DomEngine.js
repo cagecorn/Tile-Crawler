@@ -24,7 +24,7 @@ export class DomEngine {
             topBar,
             topButtons: this.topButtons,
             minimapViewport: minimapPanel.querySelector('.ui-minimap-viewport'),
-            hireButton: minimapPanel.hireButton,
+            hireButtons: minimapPanel.hireButtons,
             logViewport: logPanel.querySelector('.ui-log-scroll'),
             playerStatusContainer: statusColumn,
             actionSlotContainer: actionColumn,
@@ -123,14 +123,21 @@ export class DomEngine {
         const controls = document.createElement('div');
         controls.className = 'ui-minimap-controls';
 
-        const hireButton = document.createElement('button');
-        hireButton.type = 'button';
-        hireButton.className = 'ui-hire-button';
-        hireButton.textContent = '센티넬 고용';
-        hireButton.title = '센티넬을 고용하여 플레이어 주변에 배치';
-        hireButton.setAttribute('aria-label', '센티넬을 고용하여 플레이어 주변에 배치');
+        const sentinelButton = document.createElement('button');
+        sentinelButton.type = 'button';
+        sentinelButton.className = 'ui-hire-button';
+        sentinelButton.textContent = '센티넬 고용';
+        sentinelButton.title = '센티넬을 고용하여 플레이어 주변에 배치';
+        sentinelButton.setAttribute('aria-label', '센티넬을 고용하여 플레이어 주변에 배치');
 
-        controls.appendChild(hireButton);
+        const medicButton = document.createElement('button');
+        medicButton.type = 'button';
+        medicButton.className = 'ui-hire-button ui-hire-button--medic';
+        medicButton.textContent = '메딕 고용';
+        medicButton.title = '메딕을 고용하여 후방을 지원';
+        medicButton.setAttribute('aria-label', '메딕을 고용하여 후방을 지원');
+
+        controls.append(sentinelButton, medicButton);
 
         minimapPanel.appendChild(title);
         minimapPanel.appendChild(viewport);
@@ -138,7 +145,7 @@ export class DomEngine {
 
         this.infoRow.appendChild(minimapPanel);
 
-        minimapPanel.hireButton = hireButton;
+        minimapPanel.hireButtons = { sentinelButton, medicButton };
 
         return minimapPanel;
     }
