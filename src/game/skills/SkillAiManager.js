@@ -1,5 +1,6 @@
 import { ChargeAiNode } from './nodes/ChargeAiNode.js';
 import { HealAiNode } from './nodes/HealAiNode.js';
+import { SnipeAiNode } from './nodes/SnipeAiNode.js';
 
 export class SkillAiManager {
     constructor({ skillEngine, visionEngine, pathfindingEngine }) {
@@ -9,7 +10,8 @@ export class SkillAiManager {
 
         this.nodes = {
             charge: new ChargeAiNode({ skillEngine, visionEngine, pathfindingEngine }),
-            heal: new HealAiNode({ skillEngine, visionEngine })
+            heal: new HealAiNode({ skillEngine, visionEngine }),
+            snipe: new SnipeAiNode({ skillEngine, visionEngine })
         };
     }
 

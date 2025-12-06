@@ -137,7 +137,14 @@ export class DomEngine {
         medicButton.title = '메딕을 고용하여 후방을 지원';
         medicButton.setAttribute('aria-label', '메딕을 고용하여 후방을 지원');
 
-        controls.append(sentinelButton, medicButton);
+        const gunnerButton = document.createElement('button');
+        gunnerButton.type = 'button';
+        gunnerButton.className = 'ui-hire-button ui-hire-button--gunner';
+        gunnerButton.textContent = '거너 고용';
+        gunnerButton.title = '거너를 고용하여 원거리 화력을 투입';
+        gunnerButton.setAttribute('aria-label', '거너를 고용하여 원거리 화력을 투입');
+
+        controls.append(sentinelButton, medicButton, gunnerButton);
 
         minimapPanel.appendChild(title);
         minimapPanel.appendChild(viewport);
@@ -145,7 +152,7 @@ export class DomEngine {
 
         this.infoRow.appendChild(minimapPanel);
 
-        minimapPanel.hireButtons = { sentinelButton, medicButton };
+        minimapPanel.hireButtons = { sentinelButton, medicButton, gunnerButton };
 
         return minimapPanel;
     }
