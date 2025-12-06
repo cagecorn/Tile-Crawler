@@ -39,9 +39,6 @@ export class RegenManager {
         unit.setHealth(unit.currentHealth + healthRegen);
         const restored = unit.currentHealth - before;
         if (restored > 0) {
-            if (this.shouldLog(unit)) {
-                this.logEngine.log(`${unit.getName?.() ?? '유닛'}가 체력을 ${restored} 회복했습니다.`);
-            }
             this.specialEffectManager?.refreshUnit?.(unit);
         }
     }
@@ -55,12 +52,8 @@ export class RegenManager {
         const before = unit.currentMana;
         unit.setMana(unit.currentMana + manaRegen);
         const restored = unit.currentMana - before;
-        if (restored > 0 && this.shouldLog(unit)) {
-            this.logEngine.log(`${unit.getName?.() ?? '유닛'}가 마나를 ${restored} 회복했습니다.`);
+        if (restored > 0) {
+            this.specialEffectManager?.refreshUnit?.(unit);
         }
-    }
-
-    shouldLog(unit) {
-        return Boolean(this.logEngine?.log) && (unit?.isPlayer || unit?.faction === 'allies');
     }
 }
