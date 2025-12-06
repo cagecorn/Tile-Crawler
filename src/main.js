@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     uiContext.statusManager = statusManager;
     uiContext.hireSentinelButton = hireButtons?.sentinelButton;
     uiContext.hireMedicButton = hireButtons?.medicButton;
+    uiContext.hireGunnerButton = hireButtons?.gunnerButton;
 
     const logEngine = new LogEngine(logViewport);
 

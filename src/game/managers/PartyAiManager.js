@@ -27,6 +27,10 @@ export class PartyAiManager {
             return this.decideForMedic(member, player, monsters, allies);
         }
 
+        if (member.aiRole === 'ranged') {
+            return this.decideForRanged(member, player, monsters);
+        }
+
         const visibleThreats = (monsters ?? []).filter((monster) => monster?.isAlive?.() && this.canSee(member, monster));
         visibleThreats.sort((a, b) => this.distance(member.tilePosition, a.tilePosition) - this.distance(member.tilePosition, b.tilePosition));
 
@@ -41,6 +45,38 @@ export class PartyAiManager {
         }
 
         const escortTile = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 2, maxDistance: 4 }) ?? player.tilePosition;
+        return this.approachTarget(member, escortTile);
+    }
+
+    decideForRanged(member, player, monsters = []) {
+        const preferredRange = member.getPreferredEngagementRange?.() ?? { min: 2, max: member.getAttackRange?.() ?? 2 };
+        const visibleThreats = (monsters ?? []).filter((monster) => monster?.isAlive?.() && this.canSee(member, monster));
+        visibleThreats.sort((a, b) => this.distance(member.tilePosition, a.tilePosition) - this.distance(member.tilePosition, b.tilePosition));
+
+        if (visibleThreats.length > 0) {
+            const target = visibleThreats[0];
+            const distance = this.distance(member.tilePosition, target.tilePosition);
+
+            if (distance < preferredRange.min) {
+                const retreatTile = this.findKitingTile(member, target, preferredRange);
+                if (retreatTile) {
+                    return this.approachTarget(member, retreatTile);
+                }
+            }
+
+            if (distance > preferredRange.max) {
+                return this.approachTarget(member, target.tilePosition);
+            }
+
+            const maintainTile = this.findKitingTile(member, target, preferredRange, { preferCurrentBand: true });
+            if (maintainTile) {
+                return this.approachTarget(member, maintainTile);
+            }
+
+            return null;
+        }
+
+        const escortTile = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 3, maxDistance: 5 }) ?? player.tilePosition;
         return this.approachTarget(member, escortTile);
     }
 
@@ -110,6 +146,23 @@ export class PartyAiManager {
     canSee(member, target) {
         const sight = member?.getSightRange?.() ?? 0;
         return this.visionEngine?.canSee(member.tilePosition, target.tilePosition, sight) ?? false;
+    }
+
+    findKitingTile(member, threat, preferredRange, { preferCurrentBand = false } = {}) {
+        const ring = this.formationManager?.collectRing?.(threat.tilePosition, preferredRange.min, preferredRange.max) ?? [];
+        const candidates = ring
+            .filter((tile) => this.formationManager?.isWalkable(tile))
+            .filter((tile) => !this.turnEngine?.getUnitAt(tile))
+            .filter((tile) => {
+                const distance = this.distance(tile, threat.tilePosition);
+                const currentDistance = this.distance(member.tilePosition, threat.tilePosition);
+                return preferCurrentBand ? distance === currentDistance : distance > currentDistance;
+            })
+            .map((tile) => ({ tile, path: this.pathfindingEngine?.findPath(member.tilePosition, tile) ?? [] }))
+            .filter(({ path }) => path.length > 1);
+
+        candidates.sort((a, b) => b.path.length - a.path.length);
+        return candidates[0]?.tile ?? null;
     }
 
     distance(a, b) {

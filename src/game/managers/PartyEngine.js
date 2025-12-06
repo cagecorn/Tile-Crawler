@@ -1,5 +1,6 @@
 import { MedicUnit } from '../units/Medic.js';
 import { SentinelUnit } from '../units/Sentinel.js';
+import { GunnerUnit } from '../units/Gunner.js';
 
 export class PartyEngine {
     constructor({
@@ -136,6 +137,39 @@ export class PartyEngine {
         } else {
             this.logEngine?.log('용병 자리가 부족합니다.');
             medic.handleDeath();
+        }
+        return accepted;
+    }
+
+    hireGunner() {
+        if (!this.player) {
+            return null;
+        }
+
+        const spawnTile = this.formationManager?.findSpawnTileNear(this.player.tilePosition, { minDistance: 2, maxDistance: 4 }) ?? this.player.tilePosition;
+        const stats = this.classManager?.createStatsForClass('gunner') ?? this.statManager?.createStats({}) ?? {};
+
+        const gunner = new GunnerUnit({
+            scene: this.scene,
+            startTile: spawnTile,
+            tileSize: this.tileSize,
+            animationEngine: this.animationEngine,
+            dungeon: this.dungeon,
+            specialEffectManager: this.specialEffectManager,
+            turnEngine: this.turnEngine,
+            movementManager: this.movementManager,
+            stats
+        });
+
+        this.skillEngine?.grantSkillToUnit(gunner, 'snipe');
+
+        const accepted = this.addMember(gunner);
+        if (accepted) {
+            this.logEngine?.log('거너가 합류했습니다. 멀찍이서 엄호 사격을 준비합니다.');
+            this.notifyChange();
+        } else {
+            this.logEngine?.log('용병 자리가 부족합니다.');
+            gunner.handleDeath();
         }
         return accepted;
     }

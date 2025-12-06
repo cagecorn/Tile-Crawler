@@ -76,6 +76,31 @@ export class ClassManager {
                     critChance: 8,
                     attackRange: 1
                 }
+            },
+            gunner: {
+                key: 'gunner',
+                displayName: '거너',
+                stats: {
+                    health: 170,
+                    mana: 80,
+                    healthRegen: 4,
+                    manaRegen: 3,
+                    attack: 18,
+                    defense: 10,
+                    mobility: 4,
+                    actionSpeed: 11,
+                    sightRange: 12,
+                    level: 1,
+                    experience: 0,
+                    magicAttack: 10,
+                    magicDefense: 10,
+                    evasion: 12,
+                    accuracy: 98,
+                    actionPoints: 2,
+                    movePoints: 4,
+                    critChance: 14,
+                    attackRange: 5
+                }
             }
         };
     }

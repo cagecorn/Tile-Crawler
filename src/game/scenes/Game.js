@@ -440,7 +440,8 @@ export class Game extends Scene
     {
         const sentinelButton = uiContext.hireSentinelButton ?? null;
         const medicButton = uiContext.hireMedicButton ?? null;
-        if ((!sentinelButton && !medicButton) || !this.partyEngine) {
+        const gunnerButton = uiContext.hireGunnerButton ?? null;
+        if ((!sentinelButton && !medicButton && !gunnerButton) || !this.partyEngine) {
             return;
         }
 
@@ -451,6 +452,11 @@ export class Game extends Scene
 
         medicButton?.addEventListener('click', () => {
             this.partyEngine.hireMedic();
+            this.mercenaryRosterPanel?.refresh();
+        });
+
+        gunnerButton?.addEventListener('click', () => {
+            this.partyEngine.hireGunner();
             this.mercenaryRosterPanel?.refresh();
         });
     }

@@ -3,5 +3,8 @@ export const uiContext = {
     playerStatusContainer: null,
     layerManager: null,
     statusManager: null,
-    logEngine: null
+    logEngine: null,
+    hireSentinelButton: null,
+    hireMedicButton: null,
+    hireGunnerButton: null
 };
