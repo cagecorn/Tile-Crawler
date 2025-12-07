@@ -1,4 +1,13 @@
 import { Scene } from 'phaser';
+import { preloadSkillTextures } from '../skills/SkillAssets.js';
+import {
+    battleCrySkill,
+    chargeSkill,
+    fireballSkill,
+    healSkill,
+    rendingStrikeSkill,
+    snipeSkill
+} from '../skills/definitions/index.js';
 
 export class Preloader extends Scene
 {
@@ -39,6 +48,15 @@ export class Preloader extends Scene
         this.load.image('sentinel', 'images/unit/sentinel.png');
         this.load.image('medic', 'images/unit/medic.png');
         this.load.image('gunner', 'images/unit/gunner.png');
+
+        preloadSkillTextures(this.load, [
+            battleCrySkill,
+            chargeSkill,
+            fireballSkill,
+            healSkill,
+            rendingStrikeSkill,
+            snipeSkill
+        ]);
     }
 
     create ()
