@@ -304,9 +304,15 @@ body {
 
 .ui-vitals-grid {
     display: grid;
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 1fr;
     gap: 14px;
     align-items: stretch;
+}
+
+@media (min-width: 560px) {
+    .ui-vitals-grid {
+        grid-template-columns: 220px 1fr;
+    }
 }
 
 .ui-vitals-title {
@@ -391,7 +397,7 @@ body {
 .ui-skill-slots {
     display: grid;
     gap: 10px;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
 .ui-skill-slot {
