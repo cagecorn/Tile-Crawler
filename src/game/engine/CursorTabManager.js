@@ -1,17 +1,4 @@
-const STAT_LABELS = {
-    health: '체력',
-    mana: '마력',
-    attack: '물리 공격력',
-    defense: '물리 방어력',
-    magicAttack: '마법 공격력',
-    magicDefense: '마법 방어력',
-    movePoints: '이동력',
-    actionSpeed: '행동 속도',
-    sightRange: '시야',
-    accuracy: '정확도',
-    evasion: '회피',
-    critChance: '치명타'
-};
+import { STAT_LABELS, buildItemViewModel, buildMonsterViewModel } from './CursorTabSource.js';
 
 export class CursorTabManager {
     constructor({ root = null, hideDelay = 160 } = {}) {
@@ -83,48 +70,29 @@ export class CursorTabManager {
     }
 
     showItemTab(item, anchor = null) {
-        const slot = item.slot ? `${item.slot.toUpperCase()} 슬롯` : '장비 아이템';
-        const type = item.type ? `${item.type.toUpperCase()} 타입` : '기본형';
-        const subtitle = `${slot} · ${type}`;
-        const description = item.description || '설명이 없는 장비입니다.';
+        const { title, subtitle, description, stats } = buildItemViewModel(item);
 
         this.populateTab({
-            title: item.name ?? '알 수 없는 아이템',
+            title,
             subtitle,
             anchor,
             sections: [
                 this.createDescription(description),
-                this.createStatList(item.stats)
+                this.createStatList(stats)
             ]
         });
     }
 
     showMonsterTab(monster, anchor = null) {
-        const title = monster.getName?.() ?? monster.name ?? '알 수 없는 몬스터';
-        const stats = monster.stats ?? {};
-        const healthLine = `${monster.currentHealth ?? stats.health ?? 0} / ${monster.maxHealth ?? stats.health ?? 0}`;
-        const overview = `${monster.faction ?? '적대 세력'} · 시야 ${stats.sightRange ?? '-'} · 이동력 ${stats.movePoints ?? stats.mobility ?? '-'}`;
-        const description = monster.description ?? `${title}는 이 구역을 배회하며 침입자를 노립니다.`;
+        const { title, subtitle, description, stats } = buildMonsterViewModel(monster);
 
         this.populateTab({
             title,
-            subtitle: overview,
+            subtitle,
             anchor,
             sections: [
                 this.createDescription(description),
-                this.createStatList({
-                    health: healthLine,
-                    attack: stats.attack,
-                    defense: stats.defense,
-                    magicAttack: stats.magicAttack,
-                    magicDefense: stats.magicDefense,
-                    movePoints: stats.movePoints ?? stats.mobility,
-                    actionSpeed: stats.actionSpeed,
-                    sightRange: stats.sightRange,
-                    accuracy: stats.accuracy,
-                    evasion: stats.evasion,
-                    critChance: stats.critChance
-                })
+                this.createStatList(stats)
             ]
         });
     }
