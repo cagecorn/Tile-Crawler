@@ -26,7 +26,19 @@ export class PartyFormationManager {
             .filter((tile) => !this.turnEngine?.getUnitAt(tile));
 
         if (candidates.length === 0) {
-            return { ...playerTile };
+            const fallbackRing = this.collectRing(playerTile, 1, Math.max(maxDistance + 1, minDistance + 1))
+                .filter((tile) => this.isWalkable(tile))
+                .filter((tile) => !this.turnEngine?.getUnitAt(tile));
+
+            if (fallbackRing.length === 0) {
+                if (this.isWalkable(playerTile) && !this.turnEngine?.getUnitAt(playerTile)) {
+                    return { ...playerTile };
+                }
+                return null;
+            }
+
+            fallbackRing.sort((a, b) => this.manhattanDistance(playerTile, a) - this.manhattanDistance(playerTile, b));
+            return fallbackRing[0];
         }
 
         candidates.sort((a, b) => this.manhattanDistance(playerTile, a) - this.manhattanDistance(playerTile, b));

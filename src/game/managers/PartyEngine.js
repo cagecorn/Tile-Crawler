@@ -61,6 +61,7 @@ export class PartyEngine {
     planTurn(player, monsters) {
         const living = this.activeMembers.filter((member) => member?.isAlive?.());
         const allies = [player, ...living].filter(Boolean);
+        this.skillAiManager?.beginTurn?.();
         living.forEach((member) => {
             const skillAction = this.skillAiManager?.decide(member, monsters, { allies });
             if (skillAction) {

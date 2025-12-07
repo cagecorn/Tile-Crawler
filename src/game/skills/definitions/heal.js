@@ -15,7 +15,7 @@ export const healSkill = {
     selectTarget({ user, allies = [], visionEngine }) {
         const candidates = allies
             .filter((unit) => unit?.isAlive?.())
-            .filter((unit) => unit !== user || (unit.currentHealth < unit.maxHealth));
+            .filter((unit) => (unit.maxHealth ?? 0) > (unit.currentHealth ?? 0));
 
         if (candidates.length === 0) {
             return null;
