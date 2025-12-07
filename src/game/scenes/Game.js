@@ -9,6 +9,7 @@ import { CombatEngine } from '../engine/CombatEngine.js';
 import { PathfindingEngine } from '../engine/PathfindingEngine.js';
 import { VisionEngine } from '../engine/VisionEngine.js';
 import { ActionOrderEngine } from '../engine/ActionOrderEngine.js';
+import { CORE_EVENT_TOPICS, EventEngine } from '../engine/EventEngine.js';
 import { ClassManager } from '../managers/ClassManager.js';
 import { StatManager } from '../managers/StatManager.js';
 import { MonsterManager } from '../managers/MonsterManager.js';
@@ -18,7 +19,7 @@ import { uiContext } from '../engine/UiContext.js';
 import { PlayerStatusManager } from '../engine/PlayerStatusManager.js';
 import { ParticleAnimationEngine } from '../engine/ParticleAnimationEngine.js';
 import { TextAnimationEngine } from '../engine/TextAnimationEngine.js';
-import { PlayerVitalsWidget } from '../engine/PlayerVitalsWidget.js';
+import { PlayerVitalsManager } from '../engine/PlayerVitalsManager.js';
 import { MovementManager } from '../managers/MovementManager.js';
 import { PartyEngine } from '../managers/PartyEngine.js';
 import { PartyFormationManager } from '../managers/PartyFormationManager.js';
@@ -54,6 +55,15 @@ export class Game extends Scene
         const cameraConfig = measurementManager.getCameraConfig();
         this.dungeon = dungeon;
         this.tileSize = tileSize;
+
+        this.eventEngine = new EventEngine({ scene: this });
+        this.eventEngine.bridgePhaserEvents(this.events, [
+            CORE_EVENT_TOPICS.UNIT_HEALTH_CHANGED,
+            CORE_EVENT_TOPICS.UNIT_MANA_CHANGED,
+            CORE_EVENT_TOPICS.UNIT_MOVED,
+            CORE_EVENT_TOPICS.UNIT_DIED
+        ]);
+        uiContext.eventEngine = this.eventEngine;
 
         this.animationEngine = new AnimationEngine(this);
         this.particleAnimationEngine = new ParticleAnimationEngine(this);
@@ -97,7 +107,10 @@ export class Game extends Scene
             textAnimationEngine: this.textAnimationEngine
         });
         registerCoreSkills(this.skillEngine);
-        this.playerSkillManager = new PlayerSkillManager({ skillEngine: this.skillEngine });
+        this.playerSkillManager = new PlayerSkillManager({
+            skillEngine: this.skillEngine,
+            eventEngine: this.eventEngine
+        });
         this.playerSkillMechanismManager = new PlayerSkillMechanismManager({
             skillEngine: this.skillEngine,
             playerSkillManager: this.playerSkillManager,
@@ -318,15 +331,15 @@ export class Game extends Scene
             return;
         }
 
-        this.playerVitalsWidget = new PlayerVitalsWidget({
+        this.playerVitalsManager = new PlayerVitalsManager({
             container,
+            eventEngine: this.eventEngine,
             skillManager: this.playerSkillManager,
             skillEngine: this.skillEngine
         });
         if (this.player) {
-            this.playerVitalsWidget.bindPlayer(this.player);
+            this.playerVitalsManager.bindPlayer(this.player);
         }
-        this.playerVitalsWidget.bindSkillManager(this.playerSkillManager, this.skillEngine);
     }
 
     registerInput()

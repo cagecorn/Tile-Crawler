@@ -1,5 +1,7 @@
+import { CORE_EVENT_TOPICS } from '../engine/EventEngine.js';
+
 export class PlayerSkillManager {
-    constructor({ skillEngine, availableSlots = ['KeyQ', 'KeyW'] } = {}) {
+    constructor({ skillEngine, availableSlots = ['KeyQ', 'KeyW'], eventEngine = null } = {}) {
         this.skillEngine = skillEngine;
         this.availableSlots = availableSlots;
         this.learnedActive = new Set();
@@ -7,6 +9,7 @@ export class PlayerSkillManager {
         this.equippedSlots = new Map();
         this.listeners = new Set();
         this.player = null;
+        this.eventEngine = eventEngine;
 
         this.availableSlots.forEach((slot) => this.equippedSlots.set(slot, null));
     }
@@ -83,5 +86,18 @@ export class PlayerSkillManager {
 
     emitChange() {
         this.listeners.forEach((listener) => listener?.());
+        this.eventEngine?.emit(CORE_EVENT_TOPICS.PLAYER_SKILL_CHANGED, {
+            player: this.player,
+            slots: this.getTrackedAssignments(),
+            learnedActive: this.getLearnedActive(),
+            learnedPassive: this.getLearnedPassive()
+        });
+    }
+
+    getTrackedAssignments() {
+        return this.availableSlots.reduce((acc, slotKey) => {
+            acc[slotKey] = this.getAssignedSkill(slotKey);
+            return acc;
+        }, {});
     }
 }

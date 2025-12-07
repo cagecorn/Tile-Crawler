@@ -1,5 +1,5 @@
 export class PlayerVitalsWidget {
-    constructor({ container, player = null, skillManager = null, skillEngine = null } = {}) {
+    constructor({ container, player = null, skillManager = null, skillEngine = null, listenToEvents = true } = {}) {
         this.container = container;
         this.player = null;
         this.events = null;
@@ -15,6 +15,8 @@ export class PlayerVitalsWidget {
         this.healthBarText = null;
         this.manaBarFill = null;
         this.manaBarText = null;
+
+        this.listenToEvents = listenToEvents;
 
         if (this.container) {
             this.buildUi();
@@ -41,6 +43,9 @@ export class PlayerVitalsWidget {
         const body = document.createElement('div');
         body.className = 'ui-vitals-body';
 
+        const grid = document.createElement('div');
+        grid.className = 'ui-vitals-grid';
+
         const bars = document.createElement('div');
         bars.className = 'ui-vitals-bars';
 
@@ -55,7 +60,8 @@ export class PlayerVitalsWidget {
         bars.append(healthRow.wrapper, manaRow.wrapper);
 
         const skills = this.createSkillSlots();
-        body.append(bars, skills.wrapper);
+        grid.append(bars, skills.wrapper);
+        body.append(grid);
         card.append(title, body);
         this.container.appendChild(card);
 
@@ -144,7 +150,7 @@ export class PlayerVitalsWidget {
         }
 
         this.player = player;
-        this.events = player.scene?.events ?? null;
+        this.events = this.listenToEvents ? player.scene?.events ?? null : null;
 
         if (this.events) {
             this.events.on('unit-health-changed', this.onHealthChanged, this);
