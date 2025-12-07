@@ -392,7 +392,8 @@ body {
 .ui-skill-slots {
     display: grid;
     gap: 10px;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    align-items: stretch;
 }
 
 .ui-skill-slot {
@@ -402,6 +403,7 @@ body {
     gap: 10px;
     padding: 10px;
     width: 100%;
+    min-width: 0;
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -415,14 +417,15 @@ body {
     transform: translateY(-1px);
 }
 
-.ui-skill-icon {
+.ui-skill-slot .ui-skill-icon {
     width: 32px;
     height: 32px;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    background-size: cover;
+    background-size: contain;
     background-position: center;
+    background-repeat: no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;
