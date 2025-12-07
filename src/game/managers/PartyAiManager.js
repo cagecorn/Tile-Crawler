@@ -150,7 +150,7 @@ export class PartyAiManager {
 
     findKitingTile(member, threat, preferredRange, { preferCurrentBand = false } = {}) {
         const ring = this.formationManager?.collectRing?.(threat.tilePosition, preferredRange.min, preferredRange.max) ?? [];
-        const candidates = ring
+        const bandCandidates = ring
             .filter((tile) => this.formationManager?.isWalkable(tile))
             .filter((tile) => !this.turnEngine?.getUnitAt(tile))
             .filter((tile) => {
@@ -161,8 +161,29 @@ export class PartyAiManager {
             .map((tile) => ({ tile, path: this.pathfindingEngine?.findPath(member.tilePosition, tile) ?? [] }))
             .filter(({ path }) => path.length > 1);
 
-        candidates.sort((a, b) => b.path.length - a.path.length);
-        return candidates[0]?.tile ?? null;
+        if (bandCandidates.length > 0) {
+            bandCandidates.sort((a, b) => b.path.length - a.path.length);
+            return bandCandidates[0]?.tile ?? null;
+        }
+
+        const searchRadius = Math.max(preferredRange.max, 3);
+        const fallbackRing = this.formationManager?.collectRing?.(member.tilePosition, 1, searchRadius) ?? [];
+        const fallbackCandidates = fallbackRing
+            .filter((tile) => this.formationManager?.isWalkable(tile))
+            .filter((tile) => !this.turnEngine?.getUnitAt(tile))
+            .filter((tile) => this.distance(tile, threat.tilePosition) > this.distance(member.tilePosition, threat.tilePosition))
+            .map((tile) => ({ tile, path: this.pathfindingEngine?.findPath(member.tilePosition, tile) ?? [] }))
+            .filter(({ path }) => path.length > 1);
+
+        fallbackCandidates.sort((a, b) => {
+            const distanceDelta = this.distance(b.tile, threat.tilePosition) - this.distance(a.tile, threat.tilePosition);
+            if (distanceDelta !== 0) {
+                return distanceDelta;
+            }
+            return a.path.length - b.path.length;
+        });
+
+        return fallbackCandidates[0]?.tile ?? null;
     }
 
     distance(a, b) {
