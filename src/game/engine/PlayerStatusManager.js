@@ -56,6 +56,7 @@ export class PlayerStatusManager {
         portrait.className = 'ui-status-portrait';
         portrait.src = 'assets/images/unit-ui/warrior-ui.png';
         portrait.alt = '플레이어 초상화';
+        this.portrait = portrait;
 
         const textWrapper = document.createElement('div');
         textWrapper.className = 'ui-status-heading';
@@ -316,6 +317,12 @@ export class PlayerStatusManager {
         if (this.navLabel) {
             const className = this.player.className ?? '전사';
             this.navLabel.textContent = `${this.player.getName?.() ?? '플레이어'} · ${className}`;
+        }
+
+        if (this.portrait) {
+            const portraitSrc = this.player.portrait ?? 'assets/images/unit-ui/warrior-ui.png';
+            this.portrait.src = portraitSrc;
+            this.portrait.alt = `${this.player.getName?.() ?? '플레이어'} 초상화`;
         }
     }
 

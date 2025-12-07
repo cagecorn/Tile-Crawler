@@ -1,5 +1,5 @@
 export class UnitStatusPanel {
-    constructor({ container } = {}) {
+    constructor({ container, skillEngine = null, navigator = null } = {}) {
         this.container = container;
         this.unit = null;
         this.healthBarFill = null;
@@ -7,9 +7,16 @@ export class UnitStatusPanel {
         this.manaBarFill = null;
         this.manaBarText = null;
         this.statFields = {};
+        this.skillList = null;
+        this.skillEngine = skillEngine;
+        this.navigator = navigator;
 
         if (this.container) {
             this.buildUi();
+        }
+
+        if (navigator) {
+            this.setNavigator(navigator);
         }
     }
 
@@ -35,7 +42,31 @@ export class UnitStatusPanel {
         this.metaField.className = 'ui-status-meta';
 
         heading.append(this.nameField, this.metaField);
-        header.append(this.portrait, heading);
+
+        this.skillList = document.createElement('div');
+        this.skillList.className = 'ui-skill-list';
+        this.skillList.textContent = '보유 스킬 없음';
+
+        const overview = document.createElement('div');
+        overview.className = 'ui-status-overview';
+        overview.append(heading, this.skillList);
+
+        const navWrapper = document.createElement('div');
+        navWrapper.className = 'ui-nav-buttons';
+        const prevButton = document.createElement('button');
+        prevButton.type = 'button';
+        prevButton.className = 'ui-cycle-button';
+        prevButton.textContent = '←';
+        prevButton.addEventListener('click', () => this.navigate(-1));
+
+        const nextButton = document.createElement('button');
+        nextButton.type = 'button';
+        nextButton.className = 'ui-cycle-button';
+        nextButton.textContent = '→';
+        nextButton.addEventListener('click', () => this.navigate(1));
+        navWrapper.append(prevButton, nextButton);
+
+        header.append(this.portrait, overview, navWrapper);
 
         const bars = document.createElement('div');
         bars.className = 'ui-status-body';
@@ -111,6 +142,31 @@ export class UnitStatusPanel {
         this.refresh();
     }
 
+    setNavigator(provider) {
+        this.navigator = provider;
+        this.refreshNavigation();
+    }
+
+    refreshNavigation() {
+        const units = this.navigator?.() ?? [];
+        if (!units.length) {
+            return;
+        }
+        if (!this.unit || !units.includes(this.unit)) {
+            this.bindUnit(units[0]);
+        }
+    }
+
+    navigate(delta) {
+        const units = this.navigator?.() ?? [];
+        if (!this.unit || !units.length) {
+            return;
+        }
+        const currentIndex = units.indexOf(this.unit);
+        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + delta + units.length) % units.length;
+        this.bindUnit(units[nextIndex]);
+    }
+
     refresh() {
         if (!this.unit) {
             return;
@@ -148,6 +204,8 @@ export class UnitStatusPanel {
                 this.statFields[key].textContent = value;
             }
         });
+
+        this.renderSkills();
     }
 
     updateBar(fillEl, textEl, current, max) {
@@ -158,5 +216,55 @@ export class UnitStatusPanel {
         const ratio = Math.max(0, Math.min(1, (current ?? 0) / safeMax));
         fillEl.style.width = `${ratio * 100}%`;
         textEl.textContent = `${Math.floor(current ?? 0)} / ${Math.floor(safeMax)}`;
+    }
+
+    renderSkills() {
+        if (!this.skillList) {
+            return;
+        }
+
+        this.skillList.innerHTML = '';
+        const skillIds = this.collectSkillIds();
+
+        if (skillIds.length === 0) {
+            this.skillList.textContent = '보유 스킬 없음';
+            return;
+        }
+
+        skillIds.forEach((skillId) => {
+            const skill = this.skillEngine?.getSkill?.(skillId) ?? null;
+            const skillChip = document.createElement('div');
+            skillChip.className = 'ui-skill-chip';
+
+            const icon = document.createElement('img');
+            icon.className = 'ui-skill-icon';
+            icon.src = skill?.icon ?? 'assets/images/unit-ui/warrior-ui.png';
+            icon.alt = skill?.name ?? '스킬 아이콘';
+
+            const content = document.createElement('div');
+            content.className = 'ui-skill-content';
+
+            const name = document.createElement('div');
+            name.className = 'ui-skill-name';
+            name.textContent = skill?.name ?? skillId;
+
+            const desc = document.createElement('div');
+            desc.className = 'ui-skill-desc';
+            desc.textContent = skill?.description ?? '설명이 없습니다.';
+
+            content.append(name, desc);
+            skillChip.append(icon, content);
+            this.skillList.appendChild(skillChip);
+        });
+    }
+
+    collectSkillIds() {
+        if (!this.skillEngine || !this.unit) {
+            return [];
+        }
+
+        const active = this.skillEngine.getUnitSkills(this.unit, 'active') ?? [];
+        const passive = this.skillEngine.getUnitSkills(this.unit, 'passive') ?? [];
+        return [...active, ...passive];
     }
 }

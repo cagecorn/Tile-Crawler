@@ -490,6 +490,13 @@ body {
     gap: 4px;
 }
 
+.ui-status-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
 .ui-status-name {
     font-size: 16px;
     letter-spacing: 0.05em;
@@ -590,6 +597,52 @@ body {
     font-size: 12px;
     letter-spacing: 0.14em;
     color: rgba(255, 255, 255, 0.72);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ui-skill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.ui-skill-chip {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    min-width: 200px;
+}
+
+.ui-skill-icon {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.ui-skill-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ui-skill-name {
+    color: #fcd34d;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.ui-skill-desc {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 13px;
 }
 
 .ui-stat-grid {

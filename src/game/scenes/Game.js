@@ -287,6 +287,7 @@ export class Game extends Scene
         this.partyEngine?.onChange(() => {
             this.playerStatusPanel?.refreshNavigation?.();
             this.equipmentPanel?.refreshNavigation();
+            this.mercenaryStatusPanel?.refreshNavigation?.();
         });
     }
 
@@ -432,7 +433,9 @@ export class Game extends Scene
         }), { mode: 'layer', title: '용병 관리' });
 
         this.mercenaryStatusPanel = this.statusManager.registerPanel('mercenary-status', (container) => new UnitStatusPanel({
-            container
+            container,
+            skillEngine: this.skillEngine,
+            navigator: () => this.partyEngine?.getPartyOrder?.(false) ?? []
         }), { mode: 'layer', title: '용병 스테이터스' });
     }
 
@@ -467,6 +470,7 @@ export class Game extends Scene
             return;
         }
         this.mercenaryStatusPanel.bindUnit(unit);
+        this.mercenaryStatusPanel.refreshNavigation?.();
         this.statusManager?.show('mercenary-status');
     }
 
