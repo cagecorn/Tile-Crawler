@@ -39,6 +39,7 @@ import { SkillBookPanel } from '../engine/SkillBookPanel.js';
 import { TurnCounterEngine } from '../engine/TurnCounterEngine.js';
 import { RegenManager } from '../managers/RegenManager.js';
 import { runDebugRegenTest } from '../tests/DebugRegenTest.js';
+import { StatusIconManager } from '../managers/StatusIconManager.js';
 
 export class Game extends Scene
 {
@@ -74,6 +75,14 @@ export class Game extends Scene
         this.movementManager = new MovementManager({ turnEngine: this.turnEngine });
         this.offscreenEngine = new OffscreenEngine(this);
         this.specialEffectManager = new SpecialEffectManager(this, this.offscreenEngine);
+        this.statusIconManager = new StatusIconManager({
+            scene: this,
+            turnCounterEngine: this.turnCounterEngine,
+            eventEngine: this.eventEngine,
+            specialEffectManager: this.specialEffectManager,
+            textAnimationEngine: this.textAnimationEngine,
+            logEngine: uiContext.logEngine
+        });
         this.statManager = new StatManager();
         this.classManager = new ClassManager(this.statManager);
         this.regenManager = new RegenManager({
@@ -102,6 +111,7 @@ export class Game extends Scene
             combatEngine: this.combatEngine,
             animationEngine: this.animationEngine,
             specialEffectManager: this.specialEffectManager,
+            statusEffectManager: this.statusIconManager,
             logEngine: uiContext.logEngine,
             visionEngine: this.visionEngine,
             textAnimationEngine: this.textAnimationEngine
@@ -384,6 +394,9 @@ export class Game extends Scene
     {
         if (this.specialEffectManager) {
             this.specialEffectManager.update();
+        }
+        if (this.statusIconManager) {
+            this.statusIconManager.update();
         }
     }
 
