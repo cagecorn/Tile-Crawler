@@ -1,10 +1,11 @@
 export class EquipmentPanel {
-    constructor({ container, inventoryEngine, equipmentEngine, itemEngine, unitProvider } = {}) {
+    constructor({ container, inventoryEngine, equipmentEngine, itemEngine, unitProvider, cursorTabManager } = {}) {
         this.container = container;
         this.inventoryEngine = inventoryEngine;
         this.equipmentEngine = equipmentEngine;
         this.itemEngine = itemEngine;
         this.unitProvider = unitProvider;
+        this.cursorTabManager = cursorTabManager;
 
         this.activeUnit = null;
         this.inventoryGrid = null;
@@ -167,6 +168,7 @@ export class EquipmentPanel {
         wrapper.appendChild(label);
         wrapper.draggable = true;
         wrapper.addEventListener('dragstart', (event) => this.beginDrag(event, { type: 'item', item }));
+        this.cursorTabManager?.attachItemHover(wrapper, item);
         return wrapper;
     }
 

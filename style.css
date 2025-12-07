@@ -937,3 +937,81 @@ body {
     gap: 6px;
     justify-content: flex-end;
 }
+
+.ui-cursor-tab {
+    position: fixed;
+    min-width: 260px;
+    max-width: 360px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: linear-gradient(145deg, rgba(16, 22, 32, 0.96), rgba(10, 12, 20, 0.94));
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    pointer-events: none;
+    transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.ui-cursor-tab.is-hidden {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.ui-cursor-tab-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.ui-cursor-tab-title {
+    font-weight: 800;
+    font-size: 15px;
+    color: #ffffff;
+}
+
+.ui-cursor-tab-subtitle {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: 0.02em;
+}
+
+.ui-cursor-tab-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ui-cursor-tab-text {
+    margin: 0;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+}
+
+.ui-cursor-stat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ui-cursor-stat-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.ui-cursor-stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.02em;
+}
+
+.ui-cursor-stat-value {
+    font-weight: 700;
+    color: #e4f1ff;
+}

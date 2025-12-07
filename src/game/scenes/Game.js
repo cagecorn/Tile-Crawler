@@ -181,7 +181,8 @@ export class Game extends Scene
             statManager: this.statManager,
             pathfindingEngine: this.pathfindingEngine,
             visionEngine: this.visionEngine,
-            movementManager: this.movementManager
+            movementManager: this.movementManager,
+            cursorTabManager: uiContext.cursorTabManager
         });
         this.monsterManager.spawnZombies();
         if (import.meta?.env?.MODE !== 'production') {
@@ -261,7 +262,8 @@ export class Game extends Scene
             inventoryEngine: this.inventoryEngine,
             equipmentEngine: this.equipmentEngine,
             itemEngine: this.itemEngine,
-            unitProvider: () => this.getNavigableUnits()
+            unitProvider: () => this.getNavigableUnits(),
+            cursorTabManager: uiContext.cursorTabManager
         }), { mode: 'layer', title: '장비 관리' });
 
         this.skillBookPanel = this.statusManager.registerPanel('skills', (container) => new SkillBookPanel({

@@ -12,7 +12,8 @@ export class MonsterManager {
         statManager,
         pathfindingEngine,
         visionEngine,
-        movementManager
+        movementManager,
+        cursorTabManager = null
     }) {
         this.scene = scene;
         this.dungeon = dungeon;
@@ -24,6 +25,7 @@ export class MonsterManager {
         this.pathfindingEngine = pathfindingEngine;
         this.visionEngine = visionEngine;
         this.movementManager = movementManager;
+        this.cursorTabManager = cursorTabManager;
         this.zombies = [];
         this.behaviorTree = new ZombieBehaviorTree(this.pathfindingEngine, this.visionEngine, this.turnEngine);
     }
@@ -70,8 +72,16 @@ export class MonsterManager {
             });
 
             this.zombies.push(zombie);
+            this.enableHoverTab(zombie);
             rooms.splice(roomIndex, 1);
         }
+    }
+
+    enableHoverTab(monster) {
+        if (!this.cursorTabManager) {
+            return;
+        }
+        this.cursorTabManager.attachMonsterHover(monster?.sprite, monster);
     }
 
     planTurn(player) {
