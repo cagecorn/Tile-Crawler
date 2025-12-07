@@ -1,3 +1,5 @@
+import { SkillWidgetManager } from '../skills/SkillWidgetManager.js';
+
 export class UnitStatusPanel {
     constructor({ container, skillEngine = null, navigator = null } = {}) {
         this.container = container;
@@ -9,6 +11,7 @@ export class UnitStatusPanel {
         this.statFields = {};
         this.skillList = null;
         this.skillEngine = skillEngine;
+        this.skillWidgetManager = new SkillWidgetManager({ skillEngine });
         this.navigator = navigator;
 
         if (this.container) {
@@ -232,29 +235,18 @@ export class UnitStatusPanel {
         }
 
         skillIds.forEach((skillId) => {
-            const skill = this.skillEngine?.getSkill?.(skillId) ?? null;
-            const skillChip = document.createElement('div');
-            skillChip.className = 'ui-skill-chip';
+            const chip = this.skillWidgetManager.createInfoRow(skillId, {
+                rowClass: 'ui-skill-chip',
+                iconClass: 'ui-skill-icon',
+                nameClass: 'ui-skill-name',
+                detailClass: 'ui-skill-desc',
+                detailFormatter: (display) => display?.description ?? '설명이 없습니다.',
+                showCosts: false
+            });
 
-            const icon = document.createElement('img');
-            icon.className = 'ui-skill-icon';
-            icon.src = skill?.icon ?? 'assets/images/unit-ui/warrior-ui.png';
-            icon.alt = skill?.name ?? '스킬 아이콘';
-
-            const content = document.createElement('div');
-            content.className = 'ui-skill-content';
-
-            const name = document.createElement('div');
-            name.className = 'ui-skill-name';
-            name.textContent = skill?.name ?? skillId;
-
-            const desc = document.createElement('div');
-            desc.className = 'ui-skill-desc';
-            desc.textContent = skill?.description ?? '설명이 없습니다.';
-
-            content.append(name, desc);
-            skillChip.append(icon, content);
-            this.skillList.appendChild(skillChip);
+            if (chip.display) {
+                this.skillList.appendChild(chip.row);
+            }
         });
     }
 
