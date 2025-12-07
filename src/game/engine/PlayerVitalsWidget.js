@@ -1,3 +1,5 @@
+import { SkillWidgetManager } from '../skills/SkillWidgetManager.js';
+
 export class PlayerVitalsWidget {
     constructor({ container, player = null, skillManager = null, skillEngine = null, listenToEvents = true } = {}) {
         this.container = container;
@@ -6,6 +8,7 @@ export class PlayerVitalsWidget {
 
         this.skillManager = skillManager;
         this.skillEngine = skillEngine;
+        this.skillWidgetManager = new SkillWidgetManager({ skillEngine });
         this.skillSlotElements = new Map();
         this.skillChangeHandler = null;
         this.defaultSlots = ['KeyQ', 'KeyW'];
@@ -180,6 +183,7 @@ export class PlayerVitalsWidget {
         this.skillManager = skillManager;
         if (skillEngine) {
             this.skillEngine = skillEngine;
+            this.skillWidgetManager.setSkillEngine(skillEngine);
         }
 
         if (this.skillManager && !this.skillChangeHandler) {
@@ -247,13 +251,14 @@ export class PlayerVitalsWidget {
         const { wrapper, icon, name, keycap } = slot;
         keycap.textContent = this.getKeyLabel(slotKey);
 
-        const skillName = skill?.name ?? '빈 슬롯';
+        const display = skill ? this.skillWidgetManager.getSkillData(skill) : null;
+        const skillName = display?.name ?? '빈 슬롯';
         name.textContent = skillName;
 
-        wrapper.classList.toggle('is-filled', Boolean(skill));
-        icon.classList.toggle('is-empty', !skill?.icon);
-        if (skill?.icon) {
-            icon.style.backgroundImage = `url(${skill.icon})`;
+        wrapper.classList.toggle('is-filled', Boolean(display));
+        icon.classList.toggle('is-empty', !display?.icon);
+        if (display?.icon) {
+            icon.style.backgroundImage = `url(${display.icon})`;
         } else {
             icon.style.backgroundImage = '';
         }

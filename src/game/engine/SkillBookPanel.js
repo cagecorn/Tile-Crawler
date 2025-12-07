@@ -1,8 +1,11 @@
+import { SkillWidgetManager } from '../skills/SkillWidgetManager.js';
+
 export class SkillBookPanel {
     constructor({ container, skillEngine, playerSkillManager }) {
         this.container = container;
         this.skillEngine = skillEngine;
         this.playerSkillManager = playerSkillManager;
+        this.skillWidgetManager = new SkillWidgetManager({ skillEngine });
         this.root = null;
         this.activeList = null;
         this.passiveList = null;
@@ -94,30 +97,10 @@ export class SkillBookPanel {
         }
 
         learned.forEach((skillId) => {
-            const skill = this.skillEngine?.getSkill(skillId);
-            if (!skill) {
+            const baseRow = this.skillWidgetManager.createInfoRow(skillId, { showCosts: true });
+            if (!baseRow.display) {
                 return;
             }
-            const row = document.createElement('div');
-            row.className = 'ui-skill-row';
-
-            const icon = document.createElement('img');
-            icon.src = skill.icon;
-            icon.alt = `${skill.name} 아이콘`;
-            icon.className = 'ui-skill-icon';
-
-            const info = document.createElement('div');
-            info.className = 'ui-skill-info';
-            const name = document.createElement('div');
-            name.className = 'ui-skill-name';
-            name.textContent = skill.name;
-
-            const detail = document.createElement('div');
-            detail.className = 'ui-skill-detail';
-            detail.textContent = `${skill.description ?? ''} · 마나 ${skill.manaCost ?? 0} · 쿨타임 ${skill.cooldown ?? 0}턴`;
-
-            info.appendChild(name);
-            info.appendChild(detail);
 
             const actions = document.createElement('div');
             actions.className = 'ui-skill-actions';
@@ -133,10 +116,8 @@ export class SkillBookPanel {
                 actions.appendChild(button);
             });
 
-            row.appendChild(icon);
-            row.appendChild(info);
-            row.appendChild(actions);
-            this.activeList.appendChild(row);
+            baseRow.row.appendChild(actions);
+            this.activeList.appendChild(baseRow.row);
         });
     }
 
@@ -153,34 +134,10 @@ export class SkillBookPanel {
         }
 
         learned.forEach((skillId) => {
-            const skill = this.skillEngine?.getSkill(skillId);
-            if (!skill) {
-                return;
+            const row = this.skillWidgetManager.createInfoRow(skillId);
+            if (row.display) {
+                this.passiveList.appendChild(row.row);
             }
-            const row = document.createElement('div');
-            row.className = 'ui-skill-row';
-
-            const icon = document.createElement('img');
-            icon.src = skill.icon;
-            icon.alt = `${skill.name} 아이콘`;
-            icon.className = 'ui-skill-icon';
-
-            const info = document.createElement('div');
-            info.className = 'ui-skill-info';
-            const name = document.createElement('div');
-            name.className = 'ui-skill-name';
-            name.textContent = skill.name;
-
-            const detail = document.createElement('div');
-            detail.className = 'ui-skill-detail';
-            detail.textContent = skill.description ?? '';
-
-            info.appendChild(name);
-            info.appendChild(detail);
-
-            row.appendChild(icon);
-            row.appendChild(info);
-            this.passiveList.appendChild(row);
         });
     }
 }
