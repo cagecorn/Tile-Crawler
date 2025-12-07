@@ -95,7 +95,7 @@ export class PartyEngine {
             stats
         });
 
-        this.skillEngine?.grantSkillToUnit(sentinel, 'charge');
+        this.assignRandomSkills(sentinel, 'charge');
 
         const accepted = this.addMember(sentinel);
         if (accepted) {
@@ -128,7 +128,7 @@ export class PartyEngine {
             stats
         });
 
-        this.skillEngine?.grantSkillToUnit(medic, 'heal');
+        this.assignRandomSkills(medic, 'heal');
 
         const accepted = this.addMember(medic);
         if (accepted) {
@@ -161,7 +161,7 @@ export class PartyEngine {
             stats
         });
 
-        this.skillEngine?.grantSkillToUnit(gunner, 'snipe');
+        this.assignRandomSkills(gunner, 'snipe');
 
         const accepted = this.addMember(gunner);
         if (accepted) {
@@ -193,6 +193,37 @@ export class PartyEngine {
         this.scene?.events.emit('unit-moved', { unit, tile: unit.tilePosition });
         this.notifyChange();
         return true;
+    }
+
+    assignRandomSkills(unit, preferredSkillId = null) {
+        if (!this.skillEngine || !unit) {
+            return;
+        }
+
+        const granted = new Set();
+        const available = this.skillEngine.getActiveSkills().map((skill) => skill.id);
+
+        if (preferredSkillId) {
+            this.skillEngine.grantSkillToUnit(unit, preferredSkillId);
+            granted.add(preferredSkillId);
+        }
+
+        const maxAttempts = Math.max(available.length * 2, 2);
+        let attempts = 0;
+        while (granted.size < 2 && attempts < maxAttempts && available.length > 0) {
+            const pick = available[Math.floor(Math.random() * available.length)];
+            if (this.skillEngine.grantSkillToUnit(unit, pick)) {
+                granted.add(pick);
+            }
+            attempts++;
+        }
+
+        if (granted.size < 2 && available.length > 0) {
+            const fallback = available.find((skillId) => !granted.has(skillId)) ?? available[0];
+            if (fallback) {
+                this.skillEngine.grantSkillToUnit(unit, fallback);
+            }
+        }
     }
 
     getRoster() {
