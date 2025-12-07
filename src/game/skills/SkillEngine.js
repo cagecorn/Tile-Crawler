@@ -7,6 +7,7 @@ export class SkillEngine {
         combatEngine,
         animationEngine,
         specialEffectManager,
+        statusEffectManager,
         logEngine,
         visionEngine,
         textAnimationEngine
@@ -18,6 +19,7 @@ export class SkillEngine {
         this.combatEngine = combatEngine;
         this.animationEngine = animationEngine;
         this.specialEffectManager = specialEffectManager;
+        this.statusEffectManager = statusEffectManager;
         this.logEngine = logEngine;
         this.visionEngine = visionEngine;
         this.textAnimationEngine = textAnimationEngine;
@@ -123,6 +125,7 @@ export class SkillEngine {
             combatEngine: this.combatEngine,
             animationEngine: this.animationEngine,
             specialEffectManager: this.specialEffectManager,
+            statusEffectManager: this.statusEffectManager,
             visionEngine: this.visionEngine,
             textAnimationEngine: this.textAnimationEngine,
             logEngine: this.logEngine,
@@ -162,6 +165,13 @@ export class SkillEngine {
             return [];
         }
         return Array.from(this.turnEngine.units ?? []).filter((unit) => unit?.isAlive?.() && unit.faction !== user.faction);
+    }
+
+    findAlliedUnits(user) {
+        if (!this.turnEngine || !user) {
+            return [];
+        }
+        return Array.from(this.turnEngine.units ?? []).filter((unit) => unit?.isAlive?.() && unit.faction === user.faction);
     }
 
     distance(a, b) {
