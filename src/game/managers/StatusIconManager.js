@@ -11,7 +11,7 @@ export class StatusIconManager {
         this.specialEffectManager = specialEffectManager;
         this.textAnimationEngine = textAnimationEngine;
         this.logEngine = logEngine;
-        this.statuses = new WeakMap();
+        this.statuses = new Map();
 
         this.handleTick = this.handleTick.bind(this);
         this.handleUnitDeath = this.handleUnitDeath.bind(this);
