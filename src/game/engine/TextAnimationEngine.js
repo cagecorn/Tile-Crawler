@@ -58,4 +58,51 @@ export class TextAnimationEngine {
             strokeThickness: 4
         });
     }
+
+    showSkillCallout(target, { name = '스킬', iconKey = null } = {}) {
+        if (!target || !this.scene) {
+            return;
+        }
+
+        const anchorY = target.y - target.displayHeight / 2 - 6;
+        const title = this.scene.add.text(target.x, anchorY, name, {
+            fontSize: '24px',
+            fontFamily: 'Arial Black, Arial, sans-serif',
+            color: '#ffe09a',
+            stroke: '#7f4a00',
+            strokeThickness: 4,
+            align: 'center'
+        });
+
+        title.setOrigin(0.5);
+        title.setDepth(52);
+
+        this.scene.tweens.add({
+            targets: title,
+            y: title.y - 14,
+            alpha: 0,
+            duration: 780,
+            ease: 'Cubic.easeOut',
+            onComplete: () => title.destroy()
+        });
+
+        const resolvedIconKey = iconKey && this.scene.textures.exists(iconKey) ? iconKey : null;
+        if (!resolvedIconKey) {
+            return;
+        }
+
+        const icon = this.scene.add.image(target.x, anchorY - 18, resolvedIconKey);
+        icon.setDepth(51);
+        icon.setScale(0.6);
+
+        this.scene.tweens.add({
+            targets: icon,
+            scale: 1.25,
+            y: icon.y - 10,
+            alpha: 0,
+            duration: 720,
+            ease: 'Back.easeOut',
+            onComplete: () => icon.destroy()
+        });
+    }
 }

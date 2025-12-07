@@ -1,3 +1,5 @@
+import { getSkillTextureKey } from './SkillAssets.js';
+
 export class SkillEngine {
     constructor({
         movementManager,
@@ -134,9 +136,22 @@ export class SkillEngine {
 
         const success = await skill.execute?.(context);
         if (success) {
+            this.announceSkillUse(skill, unit);
             this.commitSkillCost(unit, skill);
         }
         return success;
+    }
+
+    announceSkillUse(skill, unit) {
+        if (!skill || !unit?.sprite) {
+            return;
+        }
+
+        const iconKey = getSkillTextureKey(skill.id);
+        this.textAnimationEngine?.showSkillCallout?.(unit.sprite, {
+            name: skill.name,
+            iconKey
+        });
     }
 
     commitSkillCost(unit, skill) {
