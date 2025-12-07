@@ -40,12 +40,12 @@ export class PartyAiManager {
 
         const distanceToPlayer = this.distance(member.tilePosition, player.tilePosition);
         if (distanceToPlayer > this.returnDistance) {
-            const rallyTile = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 1, maxDistance: 2 }) ?? player.tilePosition;
-            return this.approachTarget(member, rallyTile);
+            const rallyTile = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 1, maxDistance: 2 });
+            return rallyTile ? this.approachTarget(member, rallyTile) : null;
         }
 
-        const escortTile = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 2, maxDistance: 4 }) ?? player.tilePosition;
-        return this.approachTarget(member, escortTile);
+        const escortTile = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 2, maxDistance: 4 });
+        return escortTile ? this.approachTarget(member, escortTile) : null;
     }
 
     decideForRanged(member, player, monsters = []) {
@@ -76,8 +76,8 @@ export class PartyAiManager {
             return null;
         }
 
-        const escortTile = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 3, maxDistance: 5 }) ?? player.tilePosition;
-        return this.approachTarget(member, escortTile);
+        const escortTile = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 3, maxDistance: 5 });
+        return escortTile ? this.approachTarget(member, escortTile) : null;
     }
 
     decideForMedic(member, player, monsters = [], allies = []) {
@@ -93,12 +93,12 @@ export class PartyAiManager {
 
         const wounded = this.findMostInjured(livingAllies);
         if (wounded) {
-            const escortTile = this.formationManager?.findEscortTile(wounded.tilePosition, { minDistance: 1, maxDistance: 2 }) ?? wounded.tilePosition;
-            return this.approachTarget(member, escortTile);
+            const escortTile = this.formationManager?.findEscortTile(wounded.tilePosition, { minDistance: 1, maxDistance: 2 }) ?? null;
+            return escortTile ? this.approachTarget(member, escortTile) : null;
         }
 
-        const preferredEscort = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 1, maxDistance: 3 }) ?? player.tilePosition;
-        return this.approachTarget(member, preferredEscort);
+        const preferredEscort = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 1, maxDistance: 3 }) ?? null;
+        return preferredEscort ? this.approachTarget(member, preferredEscort) : null;
     }
 
     findMostInjured(allies = []) {
