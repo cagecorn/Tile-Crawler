@@ -1,5 +1,6 @@
 import StartGame from './game/main.js';
 import { DomEngine } from './game/engine/DomEngine.js';
+import { CursorTabManager } from './game/engine/CursorTabManager.js';
 import { LayerManager } from './game/engine/LayerManager.js';
 import { LogEngine } from './game/engine/LogEngine.js';
 import { uiContext } from './game/engine/UiContext.js';
@@ -10,12 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const { logViewport, minimapViewport, playerStatusContainer, topButtons, layerRoot, hireButtons } = domEngine.bootstrap({ buttonCount: 5 });
 
     const layerManager = new LayerManager({ root: layerRoot });
+    const cursorTabManager = new CursorTabManager({ root: layerRoot });
     const statusManager = new StatusManager({ layerManager });
 
     uiContext.minimapViewport = minimapViewport;
     uiContext.playerStatusContainer = playerStatusContainer;
     uiContext.layerManager = layerManager;
     uiContext.statusManager = statusManager;
+    uiContext.cursorTabManager = cursorTabManager;
     uiContext.hireSentinelButton = hireButtons?.sentinelButton;
     uiContext.hireMedicButton = hireButtons?.medicButton;
     uiContext.hireGunnerButton = hireButtons?.gunnerButton;
