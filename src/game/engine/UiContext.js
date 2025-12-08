@@ -7,6 +7,7 @@ export const uiContext = {
     hireSentinelButton: null,
     hireMedicButton: null,
     hireGunnerButton: null,
+    attributeResourceContainer: null,
     eventEngine: null,
     cursorTabManager: null
 };

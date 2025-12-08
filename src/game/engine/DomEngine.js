@@ -17,12 +17,15 @@ export class DomEngine {
     bootstrap ({ buttonCount = 5 } = {})
     {
         const topBar = this.createTopBar(buttonCount);
+        const resourcePanel = this.createResourcePanel();
         const minimapPanel = this.createMinimapPanel();
         const { logPanel, statusColumn, actionColumn } = this.createLogArea();
 
         return {
             topBar,
             topButtons: this.topButtons,
+            resourcePanel,
+            resourceContent: resourcePanel.querySelector('.ui-resource-content'),
             minimapViewport: minimapPanel.querySelector('.ui-minimap-viewport'),
             hireButtons: minimapPanel.hireButtons,
             logViewport: logPanel.querySelector('.ui-log-scroll'),
@@ -106,6 +109,26 @@ export class DomEngine {
         this.shell.insertBefore(topBar, this.playSpace);
 
         return topBar;
+    }
+
+    createResourcePanel ()
+    {
+        const panel = document.createElement('div');
+        panel.className = 'ui-resource-panel';
+
+        const title = document.createElement('div');
+        title.className = 'ui-resource-title';
+        title.textContent = '속성 자원';
+
+        const content = document.createElement('div');
+        content.className = 'ui-resource-content';
+
+        panel.appendChild(title);
+        panel.appendChild(content);
+
+        this.shell.insertBefore(panel, this.playSpace);
+
+        return panel;
     }
 
     createMinimapPanel ()

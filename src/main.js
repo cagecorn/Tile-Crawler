@@ -8,7 +8,7 @@ import { StatusManager } from './game/engine/StatusManager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const domEngine = new DomEngine('game-container');
-    const { logViewport, minimapViewport, playerStatusContainer, topButtons, layerRoot, hireButtons } = domEngine.bootstrap({ buttonCount: 5 });
+    const { logViewport, minimapViewport, playerStatusContainer, topButtons, layerRoot, hireButtons, resourceContent } = domEngine.bootstrap({ buttonCount: 5 });
 
     const layerManager = new LayerManager({ root: layerRoot });
     const cursorTabManager = new CursorTabManager({ root: layerRoot });
@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     uiContext.hireSentinelButton = hireButtons?.sentinelButton;
     uiContext.hireMedicButton = hireButtons?.medicButton;
     uiContext.hireGunnerButton = hireButtons?.gunnerButton;
+    uiContext.attributeResourceContainer = resourceContent;
 
     const logEngine = new LogEngine(logViewport);
 

@@ -40,6 +40,10 @@ import { TurnCounterEngine } from '../engine/TurnCounterEngine.js';
 import { RegenManager } from '../managers/RegenManager.js';
 import { runDebugRegenTest } from '../tests/DebugRegenTest.js';
 import { StatusIconManager } from '../managers/StatusIconManager.js';
+import { AttributeResourceEngine } from '../engine/AttributeResourceEngine.js';
+import { PlayerAttributeResourceManager } from '../engine/PlayerAttributeResourceManager.js';
+import { MonsterAttributeResourceManager } from '../engine/MonsterAttributeResourceManager.js';
+import { AttributeResourceDomManager } from '../engine/AttributeResourceDomManager.js';
 
 export class Game extends Scene
 {
@@ -65,6 +69,8 @@ export class Game extends Scene
             CORE_EVENT_TOPICS.UNIT_DIED
         ]);
         uiContext.eventEngine = this.eventEngine;
+
+        this.initializeAttributeResources();
 
         this.animationEngine = new AnimationEngine(this);
         this.particleAnimationEngine = new ParticleAnimationEngine(this);
@@ -200,6 +206,28 @@ export class Game extends Scene
         }
         this.registerInput();
         this.trackUnitsOnMinimap();
+    }
+
+    initializeAttributeResources()
+    {
+        this.attributeResourceEngine = new AttributeResourceEngine();
+        this.playerAttributeResourceManager = new PlayerAttributeResourceManager({
+            resourceEngine: this.attributeResourceEngine,
+            initialCapacity: 5
+        });
+        this.monsterAttributeResourceManager = new MonsterAttributeResourceManager({
+            resourceEngine: this.attributeResourceEngine,
+            floorProvider: () => 1,
+            initialCapacity: 5
+        });
+
+        if (uiContext.attributeResourceContainer) {
+            this.attributeResourceDomManager = new AttributeResourceDomManager({
+                container: uiContext.attributeResourceContainer,
+                playerResourceManager: this.playerAttributeResourceManager,
+                resourceEngine: this.attributeResourceEngine
+            });
+        }
     }
 
     enableCameraDrag ()
