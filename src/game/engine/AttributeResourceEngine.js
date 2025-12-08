@@ -52,10 +52,11 @@ export class AttributeResourceEngine
         return this.resourceTypes.includes(type);
     }
 
-    createEmptyPool(maxPerType = 0)
+    createEmptyPool(basePerType = 0)
     {
+        const baseAmount = Math.max(0, Number.isFinite(basePerType) ? basePerType : 0);
         return this.resourceTypes.reduce((pool, type) => {
-            pool[type] = { current: 0, max: maxPerType };
+            pool[type] = { base: baseAmount, overcharge: 0 };
             return pool;
         }, {});
     }
@@ -64,7 +65,7 @@ export class AttributeResourceEngine
     {
         const totals = {};
         this.resourceTypes.forEach((type) => {
-            const amount = resourcePool?.[type]?.current ?? 0;
+            const amount = this.getTotalAmount(resourcePool?.[type]);
             if (amount <= 0) {
                 return;
             }
@@ -80,15 +81,19 @@ export class AttributeResourceEngine
         return totals;
     }
 
-    clampValue(type, value, max)
+    getTotalAmount(resource = {})
     {
-        const safeValue = Number.isFinite(value) ? value : 0;
-        if (!this.isValidType(type)) {
-            return 0;
+        const base = Math.max(0, resource?.base ?? 0);
+        const overcharge = Math.max(0, resource?.overcharge ?? 0);
+        return base + overcharge;
+    }
+
+    pickRandomType()
+    {
+        if (!Array.isArray(this.resourceTypes) || this.resourceTypes.length === 0) {
+            return null;
         }
-        if (!Number.isFinite(max)) {
-            return Math.max(0, safeValue);
-        }
-        return Math.min(Math.max(0, safeValue), Math.max(0, max));
+        const index = Math.floor(Math.random() * this.resourceTypes.length);
+        return this.resourceTypes[index];
     }
 }

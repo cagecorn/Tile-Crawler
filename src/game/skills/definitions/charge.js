@@ -75,6 +75,12 @@ export const chargeSkill = {
         specialEffectManager?.refreshUnit?.(target);
         logEngine?.log?.(`${user.getName()}의 차지가 ${target.getName()}에게 ${damage} 피해를 입혔습니다.`);
 
+        const ironTotal = engine?.getResourceTotal?.(user, 'iron') ?? 0;
+        if (ironTotal > 0) {
+            user.addShield?.(ironTotal);
+            logEngine?.log?.(`수집한 철(${ironTotal})로 ${user.getName()}의 보호막이 강화됩니다.`);
+        }
+
         return true;
     }
 };

@@ -263,6 +263,12 @@ body {
     color: rgba(255, 255, 255, 0.8);
 }
 
+.ui-resource-value--overcharged {
+    color: #f8d472;
+    text-shadow: 0 0 8px rgba(248, 212, 114, 0.55);
+    font-weight: 600;
+}
+
 .ui-log-panel {
     min-height: 260px;
     height: 260px;

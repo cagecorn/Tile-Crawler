@@ -37,7 +37,12 @@ export const battleCrySkill = {
             }
         });
 
+        const overcharged = engine?.addOvercharge?.(user, 'blood', 5) ?? 0;
+
         logEngine?.log?.(`${user.getName()}이(가) 포효하여 아군의 사기를 높였습니다. (공격력 +${attackBoost})`);
+        if (overcharged > 0) {
+            logEngine?.log?.(`${user.getName()}의 피 자원이 일시적으로 ${overcharged}만큼 끓어올랐습니다.`);
+        }
         return true;
     }
 };
