@@ -58,12 +58,13 @@ export class AttributeResourceDomManager
             return;
         }
         const resources = this.playerResourceManager.getResources();
-        Object.entries(resources).forEach(([type, { current = 0, max = 0 }]) => {
+        Object.entries(resources).forEach(([type, { total = 0, base = 0, overcharge = 0 }]) => {
             const element = this.resourceElements.get(type);
             if (!element) {
                 return;
             }
-            element.textContent = `${current}/${max}`;
+            element.textContent = `${total}/${base}`;
+            element.classList.toggle('ui-resource-value--overcharged', overcharge > 0);
         });
     }
 

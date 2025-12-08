@@ -40,7 +40,7 @@ import { TurnCounterEngine } from '../engine/TurnCounterEngine.js';
 import { RegenManager } from '../managers/RegenManager.js';
 import { runDebugRegenTest } from '../tests/DebugRegenTest.js';
 import { StatusIconManager } from '../managers/StatusIconManager.js';
-import { AttributeResourceEngine } from '../engine/AttributeResourceEngine.js';
+import { AttributeResourceEngine, ATTRIBUTE_DISPLAY_NAMES } from '../engine/AttributeResourceEngine.js';
 import { PlayerAttributeResourceManager } from '../engine/PlayerAttributeResourceManager.js';
 import { MonsterAttributeResourceManager } from '../engine/MonsterAttributeResourceManager.js';
 import { AttributeResourceDomManager } from '../engine/AttributeResourceDomManager.js';
@@ -60,6 +60,7 @@ export class Game extends Scene
         const cameraConfig = measurementManager.getCameraConfig();
         this.dungeon = dungeon;
         this.tileSize = tileSize;
+        this.currentFloor = 1;
 
         this.eventEngine = new EventEngine({ scene: this });
         this.eventEngine.bridgePhaserEvents(this.events, [
@@ -70,14 +71,13 @@ export class Game extends Scene
         ]);
         uiContext.eventEngine = this.eventEngine;
 
-        this.initializeAttributeResources();
-
         this.animationEngine = new AnimationEngine(this);
         this.particleAnimationEngine = new ParticleAnimationEngine(this);
         this.textAnimationEngine = new TextAnimationEngine(this);
         this.actionOrderEngine = new ActionOrderEngine();
         this.turnCounterEngine = new TurnCounterEngine();
         this.turnEngine = new TurnEngine(this.actionOrderEngine, this.turnCounterEngine);
+        this.initializeAttributeResources();
         this.movementManager = new MovementManager({ turnEngine: this.turnEngine });
         this.offscreenEngine = new OffscreenEngine(this);
         this.specialEffectManager = new SpecialEffectManager(this, this.offscreenEngine);
@@ -120,7 +120,10 @@ export class Game extends Scene
             statusEffectManager: this.statusIconManager,
             logEngine: uiContext.logEngine,
             visionEngine: this.visionEngine,
-            textAnimationEngine: this.textAnimationEngine
+            textAnimationEngine: this.textAnimationEngine,
+            attributeResourceEngine: this.attributeResourceEngine,
+            playerAttributeResourceManager: this.playerAttributeResourceManager,
+            monsterAttributeResourceManager: this.monsterAttributeResourceManager
         });
         registerCoreSkills(this.skillEngine);
         this.playerSkillManager = new PlayerSkillManager({
@@ -213,13 +216,17 @@ export class Game extends Scene
         this.attributeResourceEngine = new AttributeResourceEngine();
         this.playerAttributeResourceManager = new PlayerAttributeResourceManager({
             resourceEngine: this.attributeResourceEngine,
-            initialCapacity: 5
+            initialBase: 0
         });
         this.monsterAttributeResourceManager = new MonsterAttributeResourceManager({
             resourceEngine: this.attributeResourceEngine,
-            floorProvider: () => 1,
-            initialCapacity: 5
+            floorProvider: () => this.currentFloor ?? 1,
+            initialBase: this.currentFloor ?? 0
         });
+
+        if (this.turnCounterEngine) {
+            this.turnCounterEngine.onTick(() => this.handleAttributeResourceTick());
+        }
 
         if (uiContext.attributeResourceContainer) {
             this.attributeResourceDomManager = new AttributeResourceDomManager({
@@ -227,6 +234,18 @@ export class Game extends Scene
                 playerResourceManager: this.playerAttributeResourceManager,
                 resourceEngine: this.attributeResourceEngine
             });
+        }
+    }
+
+    handleAttributeResourceTick()
+    {
+        const gained = this.playerAttributeResourceManager?.collectExplorationResource?.({ chance: 0.55, amount: 1 });
+        this.playerAttributeResourceManager?.decayOverchargeAll?.();
+        this.monsterAttributeResourceManager?.decayOverchargeAll?.(1, this.currentFloor ?? 1);
+
+        if (gained?.amount > 0) {
+            const label = ATTRIBUTE_DISPLAY_NAMES[gained.type] ?? gained.type;
+            uiContext.logEngine?.log?.(`탐험 도중 ${label} 자원을 ${gained.amount}만큼 채집했습니다.`);
         }
     }
 

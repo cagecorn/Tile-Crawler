@@ -1,10 +1,10 @@
 export class MonsterAttributeResourceManager
 {
-    constructor({ resourceEngine, floorProvider = null, initialCapacity = 0 } = {})
+    constructor({ resourceEngine, floorProvider = null, initialBase = 0 } = {})
     {
         this.resourceEngine = resourceEngine;
         this.floorProvider = floorProvider;
-        this.initialCapacity = initialCapacity;
+        this.initialBase = initialBase;
         this.floorPools = new Map();
     }
 
@@ -22,40 +22,51 @@ export class MonsterAttributeResourceManager
         return this.clonePool(this.ensureFloorPool(floorId));
     }
 
-    addResource(type, amount = 1, floorId = this.getCurrentFloorId())
+    addBaseResource(type, amount = 1, floorId = this.getCurrentFloorId())
     {
         const pool = this.ensureFloorPool(floorId);
         if (!this.resourceEngine?.isValidType?.(type)) {
             return 0;
         }
         const resource = pool[type];
-        const newValue = this.resourceEngine.clampValue(type, (resource.current ?? 0) + amount, resource.max);
-        const gained = newValue - (resource.current ?? 0);
-        resource.current = newValue;
+        const gained = Math.max(0, Number.isFinite(amount) ? amount : 0);
+        if (gained > 0) {
+            resource.base += gained;
+        }
         return gained;
     }
 
-    spendResource(type, amount = 1, floorId = this.getCurrentFloorId())
+    addOvercharge(type, amount = 1, floorId = this.getCurrentFloorId())
     {
         const pool = this.ensureFloorPool(floorId);
         if (!this.resourceEngine?.isValidType?.(type)) {
             return 0;
         }
         const resource = pool[type];
-        const newValue = this.resourceEngine.clampValue(type, (resource.current ?? 0) - amount, resource.max);
-        const spent = (resource.current ?? 0) - newValue;
-        resource.current = newValue;
-        return spent;
+        const gained = Math.max(0, Number.isFinite(amount) ? amount : 0);
+        if (gained > 0) {
+            resource.overcharge += gained;
+        }
+        return gained;
     }
 
-    setCapacityForAll(max, floorId = this.getCurrentFloorId())
+    decayOverchargeAll(amount = 1, floorId = this.getCurrentFloorId())
     {
         const pool = this.ensureFloorPool(floorId);
-        const safeMax = Math.max(0, Number.isFinite(max) ? max : 0);
+        const decay = Math.max(0, Number.isFinite(amount) ? amount : 0);
+        if (decay <= 0) {
+            return false;
+        }
+        let changed = false;
         this.resourceEngine?.getResourceTypes()?.forEach((type) => {
-            pool[type].max = safeMax;
-            pool[type].current = Math.min(pool[type].current ?? 0, safeMax);
+            const resource = pool[type];
+            if (resource.overcharge <= 0) {
+                return;
+            }
+            resource.overcharge = Math.max(0, resource.overcharge - decay);
+            changed = true;
         });
+        return changed;
     }
 
     applyEffectSummary(floorId = this.getCurrentFloorId())
@@ -66,7 +77,8 @@ export class MonsterAttributeResourceManager
     ensureFloorPool(floorId)
     {
         if (!this.floorPools.has(floorId)) {
-            const pool = this.resourceEngine?.createEmptyPool?.(this.initialCapacity) ?? {};
+            const baseAmount = Math.max(floorId ?? 0, this.initialBase);
+            const pool = this.resourceEngine?.createEmptyPool?.(baseAmount) ?? {};
             this.floorPools.set(floorId, pool);
         }
         return this.floorPools.get(floorId);
@@ -75,8 +87,23 @@ export class MonsterAttributeResourceManager
     clonePool(pool)
     {
         return Object.entries(pool ?? {}).reduce((copy, [type, resource]) => {
-            copy[type] = { ...resource };
+            const base = Math.max(0, resource?.base ?? 0);
+            const overcharge = Math.max(0, resource?.overcharge ?? 0);
+            copy[type] = {
+                base,
+                overcharge,
+                total: this.resourceEngine?.getTotalAmount?.(resource) ?? base + overcharge
+            };
             return copy;
         }, {});
+    }
+
+    getTotalAmount(type, floorId = this.getCurrentFloorId())
+    {
+        if (!this.resourceEngine?.isValidType?.(type)) {
+            return 0;
+        }
+        const pool = this.ensureFloorPool(floorId);
+        return this.resourceEngine.getTotalAmount(pool?.[type]);
     }
 }

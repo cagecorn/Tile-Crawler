@@ -12,7 +12,10 @@ export class SkillEngine {
         statusEffectManager,
         logEngine,
         visionEngine,
-        textAnimationEngine
+        textAnimationEngine,
+        attributeResourceEngine = null,
+        playerAttributeResourceManager = null,
+        monsterAttributeResourceManager = null
     } = {}) {
         this.movementManager = movementManager;
         this.pathfindingEngine = pathfindingEngine;
@@ -25,6 +28,9 @@ export class SkillEngine {
         this.logEngine = logEngine;
         this.visionEngine = visionEngine;
         this.textAnimationEngine = textAnimationEngine;
+        this.attributeResourceEngine = attributeResourceEngine;
+        this.playerAttributeResourceManager = playerAttributeResourceManager;
+        this.monsterAttributeResourceManager = monsterAttributeResourceManager;
 
         this.skills = new Map();
         this.unitSkills = new WeakMap();
@@ -194,6 +200,35 @@ export class SkillEngine {
             return Number.POSITIVE_INFINITY;
         }
         return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+    }
+
+    getResourceManagerForUnit(unit)
+    {
+        if (!unit) {
+            return null;
+        }
+        if (unit.faction === 'undead') {
+            return this.monsterAttributeResourceManager;
+        }
+        return this.playerAttributeResourceManager;
+    }
+
+    getResourceTotal(unit, type)
+    {
+        const manager = this.getResourceManagerForUnit(unit);
+        if (!manager?.getTotalAmount) {
+            return 0;
+        }
+        return manager.getTotalAmount(type);
+    }
+
+    addOvercharge(unit, type, amount = 0)
+    {
+        const manager = this.getResourceManagerForUnit(unit);
+        if (!manager?.addOvercharge) {
+            return 0;
+        }
+        return manager.addOvercharge(type, amount);
     }
 
     findAdjacentLanding(user, target) {

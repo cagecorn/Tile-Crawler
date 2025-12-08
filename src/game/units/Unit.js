@@ -31,6 +31,7 @@ export class Unit {
         this.maxHealth = this.stats.maxHealth;
         this.currentMana = this.stats.mana;
         this.maxMana = this.stats.maxMana;
+        this.temporaryShield = 0;
 
         const worldPosition = this.animationEngine.tileToWorldPosition(startTile, tileSize);
         this.sprite = this.scene.add.image(worldPosition.x, worldPosition.y, textureKey);
@@ -100,7 +101,8 @@ export class Unit {
     }
 
     setHealth(value) {
-        const clamped = Math.max(0, Math.min(value, this.maxHealth));
+        const target = this.applyShielding(value);
+        const clamped = Math.max(0, Math.min(target, this.maxHealth));
         if (clamped === this.currentHealth) {
             return;
         }
@@ -116,6 +118,17 @@ export class Unit {
         }
     }
 
+    addShield(amount)
+    {
+        const gained = Math.max(0, Number.isFinite(amount) ? amount : 0);
+        if (gained <= 0) {
+            return 0;
+        }
+        this.temporaryShield += gained;
+        this.specialEffectManager?.refreshUnit?.(this);
+        return gained;
+    }
+
     setMana(value) {
         const clamped = Math.max(0, Math.min(value, this.maxMana));
         if (clamped === this.currentMana) {
@@ -123,6 +136,18 @@ export class Unit {
         }
         this.currentMana = clamped;
         this.emitManaChanged();
+    }
+
+    applyShielding(targetValue)
+    {
+        if (targetValue >= this.currentHealth || this.temporaryShield <= 0) {
+            return targetValue;
+        }
+
+        const incomingDamage = this.currentHealth - targetValue;
+        const absorbed = Math.min(this.temporaryShield, incomingDamage);
+        this.temporaryShield -= absorbed;
+        return this.currentHealth - (incomingDamage - absorbed);
     }
 
     handleDeath() {
