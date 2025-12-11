@@ -239,9 +239,7 @@ export class UnitStatusPanel {
                 rowClass: 'ui-skill-chip',
                 iconClass: 'ui-skill-icon',
                 nameClass: 'ui-skill-name',
-                detailClass: 'ui-skill-desc',
-                detailFormatter: (display) => display?.description ?? '설명이 없습니다.',
-                showCosts: false
+                detailClass: 'ui-skill-desc'
             });
 
             if (chip.display) {

@@ -7,6 +7,34 @@ export class SkillWidgetManager {
         this.skillEngine = skillEngine;
     }
 
+    buildEffectDescription(skill = {})
+    {
+        const effects = [];
+
+        if (skill.effectText) {
+            effects.push(skill.effectText);
+        }
+
+        if (skill.damageMultiplier || skill.power) {
+            const multiplier = skill.damageMultiplier ?? skill.power;
+            effects.push(`공격 배율 ${multiplier}배`);
+        }
+
+        if (skill.healingRatio) {
+            effects.push(`치유 배율 ${skill.healingRatio}배`);
+        }
+
+        if (skill.range?.min !== undefined && skill.range?.max !== undefined) {
+            effects.push(`사거리 ${skill.range.min}~${skill.range.max}`);
+        }
+
+        if (effects.length === 0 && skill.description) {
+            return '부가 효과 없음';
+        }
+
+        return effects.join(' · ') || '부가 효과 없음';
+    }
+
     getSkillData(skillOrId, { level = 1, modifiers = [] } = {}) {
         const skill = typeof skillOrId === 'string'
             ? this.skillEngine?.getSkill?.(skillOrId)
@@ -23,10 +51,13 @@ export class SkillWidgetManager {
             description: skill.description,
             cooldown: skill.cooldown,
             manaCost: skill.manaCost,
+            effect: skill.effect ?? skill.effectText ?? null,
             level,
             power: skill.power ?? skill.damageMultiplier ?? null,
             skill
         };
+
+        display.effect ??= this.buildEffectDescription(display.skill);
 
         modifiers?.forEach((modifier) => {
             if (typeof modifier !== 'function') {
@@ -47,28 +78,26 @@ export class SkillWidgetManager {
         }
 
         const segments = [];
-        if (display.description) {
-            segments.push(display.description);
-        }
+        const description = display.description ?? '설명이 없습니다.';
+        const effect = display.effect ?? this.buildEffectDescription(display.skill) ?? '부가 효과 없음';
+        segments.push(description);
+        segments.push(`효과: ${effect}`);
 
         if (showCosts) {
-            const costBits = [];
-            if (display.manaCost !== undefined && display.manaCost !== null) {
-                costBits.push(`마나 ${display.manaCost}`);
-            }
-            if (display.cooldown !== undefined && display.cooldown !== null) {
-                costBits.push(`쿨타임 ${display.cooldown}턴`);
-            }
-            if (costBits.length > 0) {
-                segments.push(costBits.join(' · '));
-            }
+            const manaText = display.manaCost !== undefined && display.manaCost !== null
+                ? `${display.manaCost} 마나`
+                : '마나 소모 없음';
+            const cooldownText = display.cooldown !== undefined && display.cooldown !== null
+                ? `${display.cooldown}턴`
+                : '쿨타임 없음';
+            segments.push(`소모: ${manaText} · 쿨타임 ${cooldownText}`);
         }
 
         if (display.level !== undefined && display.level !== null) {
             segments.push(`Lv.${display.level}`);
         }
 
-        return segments.join(' · ') || '설명이 없습니다.';
+        return segments.join(' | ') || '설명이 없습니다.';
     }
 
     createInfoRow(skillOrId, {
