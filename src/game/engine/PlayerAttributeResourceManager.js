@@ -78,25 +78,6 @@ export class PlayerAttributeResourceManager
         return changed;
     }
 
-    collectExplorationResource({ chance = 0.5, amount = 1 } = {})
-    {
-        if (!this.resourceEngine || Math.random() > chance) {
-            return null;
-        }
-
-        const type = this.resourceEngine.pickRandomType();
-        if (!type) {
-            return null;
-        }
-
-        const gained = this.addBaseResource(type, amount);
-        if (gained <= 0) {
-            return null;
-        }
-
-        return { type, amount: gained };
-    }
-
     reset()
     {
         this.resourcePool = this.resourceEngine?.createEmptyPool?.(0) ?? {};

@@ -13,11 +13,25 @@ export class PartyFormationManager {
             .filter((tile) => this.isWalkable(tile))
             .filter((tile) => !this.turnEngine?.getUnitAt(tile));
 
-        if (candidates.length === 0) {
+        if (candidates.length > 0) {
+            return candidates[Math.floor(Math.random() * candidates.length)];
+        }
+
+        const extendedRadius = Math.max(maxDistance + 2, minDistance + 2);
+        const fallbackRing = this.collectRing(anchor, 1, extendedRadius)
+            .filter((tile) => this.isWalkable(tile))
+            .filter((tile) => !this.turnEngine?.getUnitAt(tile));
+
+        if (fallbackRing.length > 0) {
+            fallbackRing.sort((a, b) => this.manhattanDistance(anchor, a) - this.manhattanDistance(anchor, b));
+            return fallbackRing[0];
+        }
+
+        if (this.isWalkable(anchor) && !this.turnEngine?.getUnitAt(anchor)) {
             return { ...anchor };
         }
 
-        return candidates[Math.floor(Math.random() * candidates.length)];
+        return null;
     }
 
     findEscortTile(playerTile, { minDistance = 2, maxDistance = 4 } = {}) {

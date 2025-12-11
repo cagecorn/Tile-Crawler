@@ -81,7 +81,11 @@ export class PartyEngine {
             return null;
         }
 
-        const spawnTile = this.formationManager?.findSpawnTileNear(this.player.tilePosition, { minDistance: 1, maxDistance: 3 }) ?? this.player.tilePosition;
+        const spawnTile = this.formationManager?.findSpawnTileNear(this.player.tilePosition, { minDistance: 1, maxDistance: 3 });
+        if (!spawnTile) {
+            this.logEngine?.log('용병을 배치할 안전한 공간을 찾지 못했습니다.');
+            return null;
+        }
         const stats = this.classManager?.createStatsForClass('sentinel') ?? this.statManager?.createStats({}) ?? {};
 
         const sentinel = new SentinelUnit({
@@ -114,7 +118,11 @@ export class PartyEngine {
             return null;
         }
 
-        const spawnTile = this.formationManager?.findSpawnTileNear(this.player.tilePosition, { minDistance: 1, maxDistance: 3 }) ?? this.player.tilePosition;
+        const spawnTile = this.formationManager?.findSpawnTileNear(this.player.tilePosition, { minDistance: 1, maxDistance: 3 });
+        if (!spawnTile) {
+            this.logEngine?.log('용병을 배치할 안전한 공간을 찾지 못했습니다.');
+            return null;
+        }
         const stats = this.classManager?.createStatsForClass('medic') ?? this.statManager?.createStats({}) ?? {};
 
         const medic = new MedicUnit({
@@ -147,7 +155,11 @@ export class PartyEngine {
             return null;
         }
 
-        const spawnTile = this.formationManager?.findSpawnTileNear(this.player.tilePosition, { minDistance: 2, maxDistance: 4 }) ?? this.player.tilePosition;
+        const spawnTile = this.formationManager?.findSpawnTileNear(this.player.tilePosition, { minDistance: 2, maxDistance: 4 });
+        if (!spawnTile) {
+            this.logEngine?.log('용병을 배치할 안전한 공간을 찾지 못했습니다.');
+            return null;
+        }
         const stats = this.classManager?.createStatsForClass('gunner') ?? this.statManager?.createStats({}) ?? {};
 
         const gunner = new GunnerUnit({

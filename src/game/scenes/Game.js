@@ -40,7 +40,7 @@ import { TurnCounterEngine } from '../engine/TurnCounterEngine.js';
 import { RegenManager } from '../managers/RegenManager.js';
 import { runDebugRegenTest } from '../tests/DebugRegenTest.js';
 import { StatusIconManager } from '../managers/StatusIconManager.js';
-import { AttributeResourceEngine, ATTRIBUTE_DISPLAY_NAMES } from '../engine/AttributeResourceEngine.js';
+import { AttributeResourceEngine } from '../engine/AttributeResourceEngine.js';
 import { PlayerAttributeResourceManager } from '../engine/PlayerAttributeResourceManager.js';
 import { MonsterAttributeResourceManager } from '../engine/MonsterAttributeResourceManager.js';
 import { AttributeResourceDomManager } from '../engine/AttributeResourceDomManager.js';
@@ -239,14 +239,8 @@ export class Game extends Scene
 
     handleAttributeResourceTick()
     {
-        const gained = this.playerAttributeResourceManager?.collectExplorationResource?.({ chance: 0.55, amount: 1 });
         this.playerAttributeResourceManager?.decayOverchargeAll?.();
         this.monsterAttributeResourceManager?.decayOverchargeAll?.(1, this.currentFloor ?? 1);
-
-        if (gained?.amount > 0) {
-            const label = ATTRIBUTE_DISPLAY_NAMES[gained.type] ?? gained.type;
-            uiContext.logEngine?.log?.(`탐험 도중 ${label} 자원을 ${gained.amount}만큼 채집했습니다.`);
-        }
     }
 
     enableCameraDrag ()

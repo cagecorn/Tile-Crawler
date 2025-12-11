@@ -1,3 +1,5 @@
+import { SkillWidgetManager } from '../skills/SkillWidgetManager.js';
+
 const STAT_LABELS = {
     health: '체력',
     mana: '마력',
@@ -22,6 +24,7 @@ export class CursorTabManager {
         this.body = this.tab.querySelector('.ui-cursor-tab-body');
         this.title = this.tab.querySelector('.ui-cursor-tab-title');
         this.subtitle = this.tab.querySelector('.ui-cursor-tab-subtitle');
+        this.skillWidgetManager = new SkillWidgetManager({ skillEngine: null });
     }
 
     createTab() {
@@ -105,6 +108,7 @@ export class CursorTabManager {
         const healthLine = `${monster.currentHealth ?? stats.health ?? 0} / ${monster.maxHealth ?? stats.health ?? 0}`;
         const overview = `${monster.faction ?? '적대 세력'} · 시야 ${stats.sightRange ?? '-'} · 이동력 ${stats.movePoints ?? stats.mobility ?? '-'}`;
         const description = monster.description ?? `${title}는 이 구역을 배회하며 침입자를 노립니다.`;
+        const skills = this.extractSkillHints(monster);
 
         this.populateTab({
             title,
@@ -124,7 +128,8 @@ export class CursorTabManager {
                     accuracy: stats.accuracy,
                     evasion: stats.evasion,
                     critChance: stats.critChance
-                })
+                }),
+                this.createSkillSection(skills)
             ]
         });
     }
@@ -155,6 +160,40 @@ export class CursorTabManager {
         return paragraph;
     }
 
+    createSkillSection(skills = [])
+    {
+        if (!skills || skills.length === 0) {
+            return null;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'ui-cursor-skill-list';
+
+        const title = document.createElement('div');
+        title.className = 'ui-cursor-stat-label';
+        title.textContent = '사용 스킬';
+        wrapper.appendChild(title);
+
+        skills.forEach((skill) => {
+            const display = this.skillWidgetManager.getSkillData(skill, { level: skill.level ?? 1 });
+            const row = document.createElement('div');
+            row.className = 'ui-cursor-skill-row';
+
+            const name = document.createElement('div');
+            name.className = 'ui-cursor-skill-name';
+            name.textContent = display?.name ?? '알 수 없는 스킬';
+
+            const detail = document.createElement('div');
+            detail.className = 'ui-cursor-skill-detail';
+            detail.textContent = this.skillWidgetManager.formatDetail(display ?? skill, { showCosts: true });
+
+            row.append(name, detail);
+            wrapper.appendChild(row);
+        });
+
+        return wrapper;
+    }
+
     createStatList(stats = {}) {
         const entries = Object.entries(stats).filter(([, value]) => value !== undefined && value !== null);
         if (entries.length === 0) {
@@ -181,6 +220,20 @@ export class CursorTabManager {
         });
 
         return wrapper;
+    }
+
+    extractSkillHints(monster)
+    {
+        if (!monster) {
+            return [];
+        }
+        if (Array.isArray(monster.skillHints)) {
+            return monster.skillHints.filter(Boolean);
+        }
+        if (Array.isArray(monster.skills)) {
+            return monster.skills.filter(Boolean);
+        }
+        return [];
     }
 
     extractAnchor(event, element = null) {
