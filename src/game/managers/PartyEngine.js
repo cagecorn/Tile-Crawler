@@ -20,7 +20,8 @@ export class PartyEngine {
         logEngine,
         minimap,
         equipmentEngine,
-        skillEngine
+        skillEngine,
+        shieldManager
     }) {
         this.scene = scene;
         this.player = player;
@@ -39,6 +40,7 @@ export class PartyEngine {
         this.minimap = minimap;
         this.equipmentEngine = equipmentEngine;
         this.skillEngine = skillEngine;
+        this.shieldManager = shieldManager;
         this.turnEngine = turnEngine;
 
         this.activeLimit = 6;
@@ -95,6 +97,7 @@ export class PartyEngine {
             animationEngine: this.animationEngine,
             dungeon: this.dungeon,
             specialEffectManager: this.specialEffectManager,
+            shieldManager: this.shieldManager,
             turnEngine: this.turnEngine,
             movementManager: this.movementManager,
             stats
@@ -132,6 +135,7 @@ export class PartyEngine {
             animationEngine: this.animationEngine,
             dungeon: this.dungeon,
             specialEffectManager: this.specialEffectManager,
+            shieldManager: this.shieldManager,
             turnEngine: this.turnEngine,
             movementManager: this.movementManager,
             stats
@@ -169,6 +173,7 @@ export class PartyEngine {
             animationEngine: this.animationEngine,
             dungeon: this.dungeon,
             specialEffectManager: this.specialEffectManager,
+            shieldManager: this.shieldManager,
             turnEngine: this.turnEngine,
             movementManager: this.movementManager,
             stats

@@ -8,6 +8,7 @@ export class MonsterManager {
         tileSize,
         animationEngine,
         specialEffectManager,
+        shieldManager,
         turnEngine,
         statManager,
         pathfindingEngine,
@@ -20,6 +21,7 @@ export class MonsterManager {
         this.tileSize = tileSize;
         this.animationEngine = animationEngine;
         this.specialEffectManager = specialEffectManager;
+        this.shieldManager = shieldManager;
         this.turnEngine = turnEngine;
         this.statManager = statManager;
         this.pathfindingEngine = pathfindingEngine;
@@ -66,6 +68,7 @@ export class MonsterManager {
                 animationEngine: this.animationEngine,
                 dungeon: this.dungeon,
                 specialEffectManager: this.specialEffectManager,
+                shieldManager: this.shieldManager,
                 turnEngine: this.turnEngine,
                 movementManager: this.movementManager,
                 stats

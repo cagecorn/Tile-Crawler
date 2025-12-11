@@ -5,6 +5,7 @@ export class UnitStatusPanel {
         this.container = container;
         this.unit = null;
         this.healthBarFill = null;
+        this.healthBarShield = null;
         this.healthBarText = null;
         this.manaBarFill = null;
         this.manaBarText = null;
@@ -75,6 +76,7 @@ export class UnitStatusPanel {
         bars.className = 'ui-status-body';
         const healthRow = this.createBarRow('체력', 'ui-status-health');
         this.healthBarFill = healthRow.fill;
+        this.healthBarShield = healthRow.shield;
         this.healthBarText = healthRow.text;
         const manaRow = this.createBarRow('마력', 'ui-status-mana');
         this.manaBarFill = manaRow.fill;
@@ -132,12 +134,14 @@ export class UnitStatusPanel {
         bar.className = 'ui-status-bar';
         const fill = document.createElement('div');
         fill.className = 'ui-status-bar-fill';
+        const shield = document.createElement('div');
+        shield.className = 'ui-status-bar-shield';
         const text = document.createElement('span');
         text.className = 'ui-status-bar-text';
         text.textContent = '0 / 0';
-        bar.append(fill, text);
+        bar.append(fill, shield, text);
         wrapper.append(labelEl, bar);
-        return { wrapper, fill, text };
+        return { wrapper, fill, text, shield };
     }
 
     bindUnit(unit) {
@@ -175,8 +179,8 @@ export class UnitStatusPanel {
             return;
         }
         const stats = this.unit.stats ?? {};
-        this.updateBar(this.healthBarFill, this.healthBarText, this.unit.currentHealth, this.unit.maxHealth);
-        this.updateBar(this.manaBarFill, this.manaBarText, this.unit.currentMana, this.unit.maxMana);
+        this.updateBar(this.healthBarFill, this.healthBarShield, this.healthBarText, this.unit.currentHealth, this.unit.maxHealth, this.unit.getShieldAmount?.() ?? 0);
+        this.updateBar(this.manaBarFill, null, this.manaBarText, this.unit.currentMana, this.unit.maxMana);
 
         if (this.portrait) {
             this.portrait.src = this.unit.portrait ?? 'assets/images/unit-ui/warrior-ui.png';
@@ -211,14 +215,21 @@ export class UnitStatusPanel {
         this.renderSkills();
     }
 
-    updateBar(fillEl, textEl, current, max) {
+    updateBar(fillEl, shieldEl, textEl, current, max, shield = 0) {
         if (!fillEl || !textEl) {
             return;
         }
         const safeMax = Math.max(1, max ?? 1);
         const ratio = Math.max(0, Math.min(1, (current ?? 0) / safeMax));
+        const shieldRatio = Math.max(0, Math.min(1, ((current ?? 0) + Math.max(0, shield ?? 0)) / safeMax));
         fillEl.style.width = `${ratio * 100}%`;
-        textEl.textContent = `${Math.floor(current ?? 0)} / ${Math.floor(safeMax)}`;
+        if (shieldEl) {
+            shieldEl.style.width = `${shieldRatio * 100}%`;
+            shieldEl.classList.toggle('is-active', shieldRatio > ratio);
+        }
+        const roundedShield = Math.max(0, Math.floor(shield ?? 0));
+        const shieldSuffix = roundedShield > 0 ? ` (+${roundedShield})` : '';
+        textEl.textContent = `${Math.floor(current ?? 0)} / ${Math.floor(safeMax)}${shieldSuffix}`;
     }
 
     renderSkills() {

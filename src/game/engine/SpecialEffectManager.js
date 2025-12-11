@@ -47,8 +47,8 @@ export class SpecialEffectManager {
         if (!healthBar) {
             return;
         }
-        const { current, max } = unit.getHealthState();
-        healthBar.setHealth(current, max);
+        const { current, max, shield } = unit.getHealthState();
+        healthBar.setHealth(current, max, shield);
         healthBar.syncPosition();
     }
 
@@ -64,8 +64,8 @@ export class SpecialEffectManager {
 
     update() {
         this.healthBars.forEach((healthBar, unit) => {
-            const { current, max } = unit.getHealthState();
-            healthBar.setHealth(current, max);
+            const { current, max, shield } = unit.getHealthState();
+            healthBar.setHealth(current, max, shield);
             healthBar.syncPosition();
         });
 

@@ -8,6 +8,7 @@ export class Unit {
         animationEngine,
         dungeon,
         specialEffectManager,
+        shieldManager,
         turnEngine,
         movementManager,
         textureKey,
@@ -20,6 +21,7 @@ export class Unit {
         this.animationEngine = animationEngine;
         this.dungeon = dungeon;
         this.specialEffectManager = specialEffectManager;
+        this.shieldManager = shieldManager;
         this.turnEngine = turnEngine;
         this.movementManager = movementManager;
         this.baseStats = { ...stats };
@@ -31,7 +33,8 @@ export class Unit {
         this.maxHealth = this.stats.maxHealth;
         this.currentMana = this.stats.mana;
         this.maxMana = this.stats.maxMana;
-        this.temporaryShield = 0;
+
+        this.shieldManager?.initializeUnit?.(this);
 
         const worldPosition = this.animationEngine.tileToWorldPosition(startTile, tileSize);
         this.sprite = this.scene.add.image(worldPosition.x, worldPosition.y, textureKey);
@@ -70,7 +73,8 @@ export class Unit {
     getHealthState() {
         return {
             current: this.currentHealth,
-            max: this.maxHealth
+            max: this.maxHealth,
+            shield: this.getShieldAmount()
         };
     }
 
@@ -101,17 +105,18 @@ export class Unit {
     }
 
     setHealth(value) {
-        const target = this.applyShielding(value);
+        const { target, shieldChanged } = this.applyShielding(value);
         const clamped = Math.max(0, Math.min(target, this.maxHealth));
-        if (clamped === this.currentHealth) {
-            return;
-        }
+        const healthChanged = clamped !== this.currentHealth;
+
         this.currentHealth = clamped;
         if (this.specialEffectManager) {
             this.specialEffectManager.refreshUnit(this);
         }
 
-        this.emitHealthChanged();
+        if (healthChanged || shieldChanged) {
+            this.emitHealthChanged();
+        }
 
         if (!this.isAlive()) {
             this.handleDeath();
@@ -120,12 +125,11 @@ export class Unit {
 
     addShield(amount)
     {
-        const gained = Math.max(0, Number.isFinite(amount) ? amount : 0);
-        if (gained <= 0) {
-            return 0;
+        const gained = this.shieldManager?.addShield?.(this, amount) ?? 0;
+        if (gained > 0) {
+            this.specialEffectManager?.refreshUnit?.(this);
+            this.emitHealthChanged();
         }
-        this.temporaryShield += gained;
-        this.specialEffectManager?.refreshUnit?.(this);
         return gained;
     }
 
@@ -140,14 +144,21 @@ export class Unit {
 
     applyShielding(targetValue)
     {
-        if (targetValue >= this.currentHealth || this.temporaryShield <= 0) {
-            return targetValue;
+        if (targetValue >= this.currentHealth || !this.shieldManager) {
+            return { target: targetValue, shieldChanged: false };
         }
 
         const incomingDamage = this.currentHealth - targetValue;
-        const absorbed = Math.min(this.temporaryShield, incomingDamage);
-        this.temporaryShield -= absorbed;
-        return this.currentHealth - (incomingDamage - absorbed);
+        const { remainingDamage, consumed } = this.shieldManager.absorbDamage(this, incomingDamage);
+        return {
+            target: this.currentHealth - remainingDamage,
+            shieldChanged: consumed > 0
+        };
+    }
+
+    getShieldAmount()
+    {
+        return this.shieldManager?.getShield?.(this) ?? 0;
     }
 
     handleDeath() {
@@ -157,6 +168,7 @@ export class Unit {
         if (this.specialEffectManager) {
             this.specialEffectManager.stopTracking(this);
         }
+        this.shieldManager?.clear?.(this);
         this.scene?.events.emit('unit-died', { unit: this, tile: { ...this.tilePosition } });
         if (this.sprite) {
             this.sprite.destroy();
@@ -265,7 +277,8 @@ export class Unit {
         this.scene?.events.emit('unit-health-changed', {
             unit: this,
             current: this.currentHealth,
-            max: this.maxHealth
+            max: this.maxHealth,
+            shield: this.getShieldAmount()
         });
     }
 

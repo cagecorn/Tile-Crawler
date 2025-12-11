@@ -1,7 +1,7 @@
 import { Unit } from './Unit.js';
 
 export class GunnerUnit extends Unit {
-    constructor({ scene, startTile, tileSize, animationEngine, dungeon, specialEffectManager, turnEngine, movementManager, stats }) {
+    constructor({ scene, startTile, tileSize, animationEngine, dungeon, specialEffectManager, shieldManager, turnEngine, movementManager, stats }) {
         super({
             scene,
             startTile,
@@ -9,6 +9,7 @@ export class GunnerUnit extends Unit {
             animationEngine,
             dungeon,
             specialEffectManager,
+            shieldManager,
             turnEngine,
             movementManager,
             textureKey: 'gunner',

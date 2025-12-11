@@ -1,7 +1,7 @@
 import { Unit } from './Unit.js';
 
 export class PlayerUnit extends Unit {
-    constructor(scene, startTile, tileSize, animationEngine, dungeon, classManager, specialEffectManager, turnEngine, movementManager) {
+    constructor(scene, startTile, tileSize, animationEngine, dungeon, classManager, specialEffectManager, shieldManager, turnEngine, movementManager) {
         const stats = classManager.createStatsForClass('warrior');
         super({
             scene,
@@ -10,6 +10,7 @@ export class PlayerUnit extends Unit {
             animationEngine,
             dungeon,
             specialEffectManager,
+            shieldManager,
             turnEngine,
             movementManager,
             textureKey: 'player',
