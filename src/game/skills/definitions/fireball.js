@@ -7,7 +7,7 @@ export const fireballSkill = {
     cooldown: 2,
     range: { min: 2, max: 6 },
     damageMultiplier: 1.35,
-    description: '원거리의 적 하나에게 마법 + 화염 피해를 가합니다.',
+    description: '원거리의 적 하나에게 마법 + 화염 피해를 가하며, 수집한 [불] 자원만큼 추가 화염 피해를 줍니다.',
     aiHint: {
         role: 'burst',
         priority: 'sustain'
@@ -49,7 +49,8 @@ export const fireballSkill = {
         const magicAttack = user.stats?.magicAttack ?? user.stats?.attack ?? 0;
         const magicDefense = target.stats?.magicDefense ?? target.stats?.defense ?? 0;
         const baseDamage = Math.max(1, magicAttack - Math.floor(magicDefense / 3));
-        const damage = Math.max(1, Math.floor(baseDamage * this.damageMultiplier));
+        const elementalBonus = engine.getResourceTotal?.(user, 'fire') ?? 0;
+        const damage = Math.max(1, Math.floor(baseDamage * this.damageMultiplier) + Math.floor(elementalBonus));
 
         target.setHealth(target.currentHealth - damage);
         textAnimationEngine?.showDamage(target.sprite, damage, { color: '#ffb347' });

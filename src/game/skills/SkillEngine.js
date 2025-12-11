@@ -207,10 +207,10 @@ export class SkillEngine {
         if (!unit) {
             return null;
         }
-        if (unit.faction === 'undead') {
-            return this.monsterAttributeResourceManager;
+        if (unit.faction === 'allies') {
+            return this.playerAttributeResourceManager;
         }
-        return this.playerAttributeResourceManager;
+        return this.monsterAttributeResourceManager;
     }
 
     getResourceTotal(unit, type)

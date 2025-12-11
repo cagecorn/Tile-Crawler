@@ -204,9 +204,10 @@ export class Game extends Scene
             pathfindingEngine: this.pathfindingEngine,
             visionEngine: this.visionEngine,
             movementManager: this.movementManager,
-            cursorTabManager: uiContext.cursorTabManager
+            cursorTabManager: uiContext.cursorTabManager,
+            skillEngine: this.skillEngine
         });
-        this.monsterManager.spawnZombies();
+        this.monsterManager.spawnMonsters();
         if (import.meta?.env?.MODE !== 'production') {
             runDebugRegenTest({ regenManager: this.regenManager, logger: uiContext.logEngine });
         }
