@@ -1,3 +1,4 @@
+import { ATTRIBUTE_DISPLAY_NAMES } from './AttributeResourceEngine.js';
 import { SkillWidgetManager } from '../skills/SkillWidgetManager.js';
 
 const STAT_LABELS = {
@@ -16,7 +17,7 @@ const STAT_LABELS = {
 };
 
 export class CursorTabManager {
-    constructor({ root = null, hideDelay = 160 } = {}) {
+    constructor({ root = null, hideDelay = 160, equipmentProvider = null } = {}) {
         this.root = root ?? document.body;
         this.hideDelay = hideDelay;
         this.hideTimer = null;
@@ -25,6 +26,7 @@ export class CursorTabManager {
         this.title = this.tab.querySelector('.ui-cursor-tab-title');
         this.subtitle = this.tab.querySelector('.ui-cursor-tab-subtitle');
         this.skillWidgetManager = new SkillWidgetManager({ skillEngine: null });
+        this.equipmentProvider = equipmentProvider;
     }
 
     createTab() {
@@ -109,6 +111,7 @@ export class CursorTabManager {
         const overview = `${monster.faction ?? '적대 세력'} · 시야 ${stats.sightRange ?? '-'} · 이동력 ${stats.movePoints ?? stats.mobility ?? '-'}`;
         const description = monster.description ?? `${title}는 이 구역을 배회하며 침입자를 노립니다.`;
         const skills = this.extractSkillHints(monster);
+        const equipment = this.getEquipment(monster);
 
         this.populateTab({
             title,
@@ -116,6 +119,7 @@ export class CursorTabManager {
             anchor,
             sections: [
                 this.createDescription(description),
+                this.createEquipmentSection(equipment),
                 this.createStatList({
                     health: healthLine,
                     attack: stats.attack,
@@ -132,6 +136,25 @@ export class CursorTabManager {
                 this.createSkillSection(skills)
             ]
         });
+    }
+
+    setEquipmentProvider(provider)
+    {
+        this.equipmentProvider = provider;
+    }
+
+    getEquipment(monster)
+    {
+        if (!monster) {
+            return null;
+        }
+        if (typeof this.equipmentProvider === 'function') {
+            return this.equipmentProvider(monster);
+        }
+        if (this.equipmentProvider?.getLoadout) {
+            return this.equipmentProvider.getLoadout(monster);
+        }
+        return null;
     }
 
     populateTab({ title, subtitle = '', sections = [], anchor = null } = {}) {
@@ -192,6 +215,53 @@ export class CursorTabManager {
         });
 
         return wrapper;
+    }
+
+    createEquipmentSection(loadout = null)
+    {
+        if (!loadout) {
+            return null;
+        }
+
+        const equipped = Object.entries(loadout).filter(([, item]) => Boolean(item));
+        if (equipped.length === 0) {
+            return null;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'ui-cursor-stat-list';
+
+        const title = document.createElement('div');
+        title.className = 'ui-cursor-stat-label';
+        title.textContent = '장비';
+        wrapper.appendChild(title);
+
+        equipped.forEach(([slot, item]) => {
+            const row = document.createElement('div');
+            row.className = 'ui-cursor-stat-row';
+
+            const label = document.createElement('span');
+            label.className = 'ui-cursor-stat-label';
+            label.textContent = slot.toUpperCase();
+
+            const value = document.createElement('span');
+            value.className = 'ui-cursor-stat-value';
+            value.textContent = this.formatEquipmentName(item);
+
+            row.append(label, value);
+            wrapper.appendChild(row);
+        });
+
+        return wrapper;
+    }
+
+    formatEquipmentName(item)
+    {
+        if (!item) {
+            return '-';
+        }
+        const enchant = item.enchantType ? ` (${ATTRIBUTE_DISPLAY_NAMES?.[item.enchantType] ?? item.enchantType})` : '';
+        return `${item.name ?? item.baseName ?? '알 수 없음'}${enchant}`;
     }
 
     createStatList(stats = {}) {

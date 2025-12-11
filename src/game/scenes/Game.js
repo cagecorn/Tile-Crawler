@@ -47,6 +47,10 @@ import { AttributeResourceDomManager } from '../engine/AttributeResourceDomManag
 import { ShieldManager } from '../managers/ShieldManager.js';
 import { AttributeDamageManager } from '../managers/AttributeDamageManager.js';
 import { EnchantManager } from '../managers/EnchantManager.js';
+import { createDefaultDiceEngine } from '../engine/DiceEngine.js';
+import { RandomTableManager } from '../managers/RandomTableManager.js';
+import { PrefixSuffixManager } from '../managers/PrefixSuffixManager.js';
+import { MonsterEquipmentManager } from '../managers/MonsterEquipmentManager.js';
 
 export class Game extends Scene
 {
@@ -74,6 +78,7 @@ export class Game extends Scene
         ]);
         uiContext.eventEngine = this.eventEngine;
 
+        this.diceEngine = createDefaultDiceEngine();
         this.animationEngine = new AnimationEngine(this);
         this.particleAnimationEngine = new ParticleAnimationEngine(this);
         this.textAnimationEngine = new TextAnimationEngine(this);
@@ -88,6 +93,12 @@ export class Game extends Scene
             monsterAttributeResourceManager: this.monsterAttributeResourceManager,
             enchantManager: this.enchantManager
         });
+        this.prefixSuffixManager = new PrefixSuffixManager({
+            attributeResourceEngine: this.attributeResourceEngine,
+            diceEngine: this.diceEngine,
+            allowedTypes: ['fire', 'water', 'wind', 'earth', 'light', 'dark']
+        });
+        this.randomTableManager = new RandomTableManager({ diceEngine: this.diceEngine });
         this.movementManager = new MovementManager({ turnEngine: this.turnEngine });
         this.shieldManager = new ShieldManager();
         this.offscreenEngine = new OffscreenEngine(this);
@@ -158,6 +169,15 @@ export class Game extends Scene
         this.itemEngine = createDefaultItemEngine();
         this.inventoryEngine = createSharedInventory(48);
         this.equipmentEngine = createEquipmentEngine();
+        this.monsterEquipmentManager = new MonsterEquipmentManager({
+            itemEngine: this.itemEngine,
+            equipmentEngine: this.equipmentEngine,
+            enchantManager: this.enchantManager,
+            prefixSuffixManager: this.prefixSuffixManager,
+            diceEngine: this.diceEngine
+        });
+        this.configureLootTables();
+        uiContext.cursorTabManager?.setEquipmentProvider?.((unit) => this.equipmentEngine?.getLoadout?.(unit) ?? null);
         this.partyFormationManager = new PartyFormationManager({
             turnEngine: this.turnEngine,
             dungeon: this.dungeon,
@@ -216,9 +236,11 @@ export class Game extends Scene
             visionEngine: this.visionEngine,
             movementManager: this.movementManager,
             cursorTabManager: uiContext.cursorTabManager,
-            skillEngine: this.skillEngine
+            skillEngine: this.skillEngine,
+            monsterEquipmentManager: this.monsterEquipmentManager
         });
         this.monsterManager.spawnMonsters();
+        this.events.on('unit-died', ({ unit }) => this.handleUnitDeathLoot(unit));
         if (import.meta?.env?.MODE !== 'production') {
             runDebugRegenTest({ regenManager: this.regenManager, logger: uiContext.logEngine });
         }
@@ -567,19 +589,60 @@ export class Game extends Scene
         return Array.from(uniqueUnits).filter(Boolean);
     }
 
+    safeAddToInventory(item, label = '획득')
+    {
+        if (!item) {
+            return;
+        }
+        const index = this.inventoryEngine?.addItem?.(item) ?? -1;
+        const itemName = item.name ?? item.baseName ?? '알 수 없는 장비';
+        if (index === -1) {
+            uiContext.logEngine?.log?.(`${label}: 인벤토리가 가득 차 ${itemName}을(를) 주울 수 없습니다.`);
+            return;
+        }
+        uiContext.logEngine?.log?.(`${label}: ${itemName}을(를) 얻었습니다.`);
+    }
+
     seedStarterInventory()
     {
-        const starterItems = [
-            this.itemEngine?.createInstance('short-axe'),
-            this.itemEngine?.createInstance('plate-armor')
-        ].filter(Boolean);
-
-        starterItems.forEach((item) => {
-            this.inventoryEngine?.addItem(item);
-        });
+        const dropCount = this.diceEngine?.rollRange?.(1, 2) ?? 1;
+        for (let i = 0; i < dropCount; i++) {
+            const item = this.randomTableManager?.roll('core-drops');
+            this.safeAddToInventory(item, '[던전 발견]');
+        }
 
         if (this.player) {
             this.equipmentEngine?.registerUnit(this.player);
         }
+    }
+
+    configureLootTables()
+    {
+        if (!this.randomTableManager) {
+            return;
+        }
+
+        const entry = (definitionId) => ({
+            weight: 1,
+            create: () => this.prefixSuffixManager?.applyEnchant?.(
+                this.itemEngine?.createInstance?.(definitionId),
+                this.prefixSuffixManager?.pickEnchantType?.()
+            )
+        });
+
+        this.randomTableManager.registerTable('core-drops', [
+            entry('short-axe'),
+            entry('plate-armor')
+        ]);
+    }
+
+    handleUnitDeathLoot(unit)
+    {
+        if (!unit || unit.faction === 'allies') {
+            return;
+        }
+        const drop = this.monsterEquipmentManager?.createDrop?.(unit)
+            ?? this.randomTableManager?.roll('core-drops');
+        this.safeAddToInventory(drop, '[전리품]');
     }
 }
