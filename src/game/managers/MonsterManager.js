@@ -19,7 +19,8 @@ export class MonsterManager {
         visionEngine,
         movementManager,
         cursorTabManager = null,
-        skillEngine = null
+        skillEngine = null,
+        monsterEquipmentManager = null
     }) {
         this.scene = scene;
         this.dungeon = dungeon;
@@ -34,6 +35,7 @@ export class MonsterManager {
         this.movementManager = movementManager;
         this.cursorTabManager = cursorTabManager;
         this.skillEngine = skillEngine;
+        this.monsterEquipmentManager = monsterEquipmentManager;
         this.monsters = [];
         this.behaviorTree = new MonsterBehaviorTree(this.pathfindingEngine, this.visionEngine, this.turnEngine, this.skillEngine);
     }
@@ -88,6 +90,7 @@ export class MonsterManager {
     registerMonster(monster) {
         this.monsters.push(monster);
         this.grantSignatureSkills(monster);
+        this.monsterEquipmentManager?.equipMonster?.(monster);
         this.enableHoverTab(monster);
     }
 
