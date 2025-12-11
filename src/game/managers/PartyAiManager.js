@@ -40,11 +40,19 @@ export class PartyAiManager {
 
         const distanceToPlayer = this.distance(member.tilePosition, player.tilePosition);
         if (distanceToPlayer > this.returnDistance) {
-            const rallyTile = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 1, maxDistance: 2 });
+            const rallyTile = this.formationManager?.findEscortTile(player.tilePosition, {
+                minDistance: 1,
+                maxDistance: 2,
+                avoidTiles: [player.tilePosition]
+            });
             return rallyTile ? this.approachTarget(member, rallyTile) : null;
         }
 
-        const escortTile = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 2, maxDistance: 4 });
+        const escortTile = this.formationManager?.findEscortTile(player.tilePosition, {
+            minDistance: 2,
+            maxDistance: 4,
+            avoidTiles: [player.tilePosition]
+        });
         return escortTile ? this.approachTarget(member, escortTile) : null;
     }
 
@@ -76,7 +84,11 @@ export class PartyAiManager {
             return null;
         }
 
-        const escortTile = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 3, maxDistance: 5 });
+        const escortTile = this.formationManager?.findEscortTile(player.tilePosition, {
+            minDistance: 3,
+            maxDistance: 5,
+            avoidTiles: [player.tilePosition]
+        });
         return escortTile ? this.approachTarget(member, escortTile) : null;
     }
 
@@ -97,7 +109,11 @@ export class PartyAiManager {
             return escortTile ? this.approachTarget(member, escortTile) : null;
         }
 
-        const preferredEscort = this.formationManager?.findEscortTile(player.tilePosition, { minDistance: 1, maxDistance: 3 }) ?? null;
+        const preferredEscort = this.formationManager?.findEscortTile(player.tilePosition, {
+            minDistance: 1,
+            maxDistance: 3,
+            avoidTiles: [player.tilePosition]
+        }) ?? null;
         return preferredEscort ? this.approachTarget(member, preferredEscort) : null;
     }
 

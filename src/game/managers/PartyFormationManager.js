@@ -34,20 +34,21 @@ export class PartyFormationManager {
         return null;
     }
 
-    findEscortTile(playerTile, { minDistance = 2, maxDistance = 4 } = {}) {
+    findEscortTile(playerTile, { minDistance = 2, maxDistance = 4, avoidTiles = [] } = {}) {
+        const isExcluded = (tile) => avoidTiles.some((excluded) => excluded?.x === tile.x && excluded?.y === tile.y);
+
         const candidates = this.collectRing(playerTile, minDistance, maxDistance)
             .filter((tile) => this.isWalkable(tile))
-            .filter((tile) => !this.turnEngine?.getUnitAt(tile));
+            .filter((tile) => !this.turnEngine?.getUnitAt(tile))
+            .filter((tile) => !isExcluded(tile));
 
         if (candidates.length === 0) {
             const fallbackRing = this.collectRing(playerTile, 1, Math.max(maxDistance + 1, minDistance + 1))
                 .filter((tile) => this.isWalkable(tile))
-                .filter((tile) => !this.turnEngine?.getUnitAt(tile));
+                .filter((tile) => !this.turnEngine?.getUnitAt(tile))
+                .filter((tile) => !isExcluded(tile));
 
             if (fallbackRing.length === 0) {
-                if (this.isWalkable(playerTile) && !this.turnEngine?.getUnitAt(playerTile)) {
-                    return { ...playerTile };
-                }
                 return null;
             }
 
