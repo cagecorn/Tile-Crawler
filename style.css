@@ -407,6 +407,16 @@ body {
     transition: width 140ms ease;
 }
 
+.ui-vitals-shield {
+    position: absolute;
+    inset: 0;
+    width: 0%;
+    background: linear-gradient(90deg, rgba(125, 211, 252, 0.6), rgba(14, 165, 233, 0.8));
+    mix-blend-mode: screen;
+    opacity: 0.9;
+    transition: width 140ms ease;
+}
+
 .ui-vitals-health .ui-vitals-fill {
     background: linear-gradient(90deg, #f87171, #ef4444);
     box-shadow: 0 0 10px rgba(248, 113, 113, 0.35);
@@ -623,6 +633,16 @@ body {
     position: absolute;
     inset: 0;
     width: 0%;
+    transition: width 140ms ease;
+}
+
+.ui-status-bar-shield {
+    position: absolute;
+    inset: 0;
+    width: 0%;
+    background: linear-gradient(90deg, rgba(125, 211, 252, 0.58), rgba(14, 165, 233, 0.85));
+    mix-blend-mode: screen;
+    opacity: 0.95;
     transition: width 140ms ease;
 }
 

@@ -62,13 +62,13 @@ export class PlayerVitalsManager
         );
     }
 
-    handleHealthChanged ({ unit, current, max })
+    handleHealthChanged ({ unit, current, max, shield })
     {
         if (unit !== this.player)
         {
             return;
         }
-        this.widget?.updateHealth({ current, max });
+        this.widget?.updateHealth({ current, max, shield });
     }
 
     handleManaChanged ({ unit, current, max })

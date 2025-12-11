@@ -44,6 +44,7 @@ import { AttributeResourceEngine } from '../engine/AttributeResourceEngine.js';
 import { PlayerAttributeResourceManager } from '../engine/PlayerAttributeResourceManager.js';
 import { MonsterAttributeResourceManager } from '../engine/MonsterAttributeResourceManager.js';
 import { AttributeResourceDomManager } from '../engine/AttributeResourceDomManager.js';
+import { ShieldManager } from '../managers/ShieldManager.js';
 
 export class Game extends Scene
 {
@@ -79,6 +80,7 @@ export class Game extends Scene
         this.turnEngine = new TurnEngine(this.actionOrderEngine, this.turnCounterEngine);
         this.initializeAttributeResources();
         this.movementManager = new MovementManager({ turnEngine: this.turnEngine });
+        this.shieldManager = new ShieldManager();
         this.offscreenEngine = new OffscreenEngine(this);
         this.specialEffectManager = new SpecialEffectManager(this, this.offscreenEngine);
         this.statusIconManager = new StatusIconManager({
@@ -196,6 +198,7 @@ export class Game extends Scene
             tileSize: this.tileSize,
             animationEngine: this.animationEngine,
             specialEffectManager: this.specialEffectManager,
+            shieldManager: this.shieldManager,
             turnEngine: this.turnEngine,
             statManager: this.statManager,
             pathfindingEngine: this.pathfindingEngine,
@@ -282,6 +285,7 @@ export class Game extends Scene
             this.dungeon,
             this.classManager,
             this.specialEffectManager,
+            this.shieldManager,
             this.turnEngine,
             this.movementManager
         );
@@ -333,6 +337,7 @@ export class Game extends Scene
             tileSize: this.tileSize,
             animationEngine: this.animationEngine,
             specialEffectManager: this.specialEffectManager,
+            shieldManager: this.shieldManager,
             turnEngine: this.turnEngine,
             movementManager: this.movementManager,
             formationManager: this.partyFormationManager,

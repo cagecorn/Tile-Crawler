@@ -15,6 +15,7 @@ export class PlayerVitalsWidget {
         this.skillSlotGrid = null;
 
         this.healthBarFill = null;
+        this.healthBarShield = null;
         this.healthBarText = null;
         this.manaBarFill = null;
         this.manaBarText = null;
@@ -54,6 +55,7 @@ export class PlayerVitalsWidget {
 
         const healthRow = this.createBarRow('체력', 'ui-vitals-health');
         this.healthBarFill = healthRow.fill;
+        this.healthBarShield = healthRow.shield;
         this.healthBarText = healthRow.text;
 
         const manaRow = this.createBarRow('마력', 'ui-vitals-mana');
@@ -85,14 +87,16 @@ export class PlayerVitalsWidget {
         const fill = document.createElement('div');
         fill.className = 'ui-vitals-fill';
 
+        const shield = document.createElement('div');
+        shield.className = 'ui-vitals-shield';
+
         const text = document.createElement('span');
         text.className = 'ui-vitals-text';
         text.textContent = '0 / 0';
-
-        bar.append(fill, text);
+        bar.append(fill, shield, text);
         wrapper.append(labelEl, bar);
 
-        return { wrapper, fill, text };
+        return { wrapper, fill, text, shield };
     }
 
     createSkillSlots() {
@@ -194,11 +198,11 @@ export class PlayerVitalsWidget {
         this.refreshSkillSlots();
     }
 
-    onHealthChanged({ unit, current, max }) {
+    onHealthChanged({ unit, current, max, shield }) {
         if (unit !== this.player) {
             return;
         }
-        this.updateHealth({ current, max });
+        this.updateHealth({ current, max, shield });
     }
 
     onManaChanged({ unit, current, max }) {
@@ -208,24 +212,31 @@ export class PlayerVitalsWidget {
         this.updateMana({ current, max });
     }
 
-    updateHealth({ current, max }) {
-        this.updateBar(this.healthBarFill, this.healthBarText, current, max);
+    updateHealth({ current, max, shield = 0 }) {
+        this.updateBar(this.healthBarFill, this.healthBarShield, this.healthBarText, current, max, shield);
     }
 
     updateMana({ current, max }) {
-        this.updateBar(this.manaBarFill, this.manaBarText, current, max);
+        this.updateBar(this.manaBarFill, null, this.manaBarText, current, max, 0);
     }
 
-    updateBar(fillEl, textEl, current, max) {
+    updateBar(fillEl, shieldEl, textEl, current, max, shield = 0) {
         if (!fillEl || !textEl) {
             return;
         }
 
         const safeMax = Math.max(1, max ?? 1);
         const ratio = Math.max(0, Math.min(1, (current ?? 0) / safeMax));
+        const shieldRatio = Math.max(0, Math.min(1, ((current ?? 0) + Math.max(0, shield ?? 0)) / safeMax));
 
         fillEl.style.width = `${ratio * 100}%`;
-        textEl.textContent = `${Math.max(0, Math.floor(current ?? 0))} / ${Math.floor(safeMax)}`;
+        if (shieldEl) {
+            shieldEl.style.width = `${shieldRatio * 100}%`;
+            shieldEl.classList.toggle('is-active', shieldRatio > ratio);
+        }
+        const roundedShield = Math.max(0, Math.floor(shield ?? 0));
+        const shieldSuffix = roundedShield > 0 ? ` (+${roundedShield})` : '';
+        textEl.textContent = `${Math.max(0, Math.floor(current ?? 0))} / ${Math.floor(safeMax)}${shieldSuffix}`;
     }
 
     refreshSkillSlots() {
