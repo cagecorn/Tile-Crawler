@@ -48,9 +48,15 @@ export const fireballSkill = {
 
         const magicAttack = user.stats?.magicAttack ?? user.stats?.attack ?? 0;
         const magicDefense = target.stats?.magicDefense ?? target.stats?.defense ?? 0;
-        const baseDamage = Math.max(1, magicAttack - Math.floor(magicDefense / 3));
-        const elementalBonus = engine.getResourceTotal?.(user, 'fire') ?? 0;
-        const damage = Math.max(1, Math.floor(baseDamage * this.damageMultiplier) + Math.floor(elementalBonus));
+        const baseDamage = Math.max(1, Math.floor(magicAttack - Math.floor(magicDefense / 3)));
+        const scaledDamage = Math.max(1, Math.floor(baseDamage * this.damageMultiplier));
+        const damage = Math.max(1, engine?.calculateAttributeDamage?.({
+            attacker: user,
+            defender: target,
+            baseDamage: scaledDamage,
+            attributeType: 'fire',
+            source: 'skill'
+        }) ?? scaledDamage);
 
         target.setHealth(target.currentHealth - damage);
         textAnimationEngine?.showDamage(target.sprite, damage, { color: '#ffb347' });

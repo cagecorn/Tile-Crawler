@@ -15,7 +15,8 @@ export class SkillEngine {
         textAnimationEngine,
         attributeResourceEngine = null,
         playerAttributeResourceManager = null,
-        monsterAttributeResourceManager = null
+        monsterAttributeResourceManager = null,
+        attributeDamageManager = null
     } = {}) {
         this.movementManager = movementManager;
         this.pathfindingEngine = pathfindingEngine;
@@ -31,6 +32,7 @@ export class SkillEngine {
         this.attributeResourceEngine = attributeResourceEngine;
         this.playerAttributeResourceManager = playerAttributeResourceManager;
         this.monsterAttributeResourceManager = monsterAttributeResourceManager;
+        this.attributeDamageManager = attributeDamageManager;
 
         this.skills = new Map();
         this.unitSkills = new WeakMap();
@@ -220,6 +222,20 @@ export class SkillEngine {
             return 0;
         }
         return manager.getTotalAmount(type);
+    }
+
+    calculateAttributeDamage({ attacker = null, defender = null, baseDamage = 0, attributeType = null, source = 'skill' } = {})
+    {
+        const result = this.attributeDamageManager?.calculateDamage?.({
+            attacker,
+            defender,
+            baseDamage,
+            attributeType,
+            source
+        });
+
+        const normalizedBase = Number.isFinite(baseDamage) ? baseDamage : 0;
+        return result?.totalDamage ?? Math.max(0, normalizedBase);
     }
 
     addOvercharge(unit, type, amount = 0)

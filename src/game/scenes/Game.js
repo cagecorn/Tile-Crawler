@@ -45,6 +45,8 @@ import { PlayerAttributeResourceManager } from '../engine/PlayerAttributeResourc
 import { MonsterAttributeResourceManager } from '../engine/MonsterAttributeResourceManager.js';
 import { AttributeResourceDomManager } from '../engine/AttributeResourceDomManager.js';
 import { ShieldManager } from '../managers/ShieldManager.js';
+import { AttributeDamageManager } from '../managers/AttributeDamageManager.js';
+import { EnchantManager } from '../managers/EnchantManager.js';
 
 export class Game extends Scene
 {
@@ -79,6 +81,13 @@ export class Game extends Scene
         this.turnCounterEngine = new TurnCounterEngine();
         this.turnEngine = new TurnEngine(this.actionOrderEngine, this.turnCounterEngine);
         this.initializeAttributeResources();
+        this.enchantManager = new EnchantManager({ attributeResourceEngine: this.attributeResourceEngine });
+        this.attributeDamageManager = new AttributeDamageManager({
+            attributeResourceEngine: this.attributeResourceEngine,
+            playerAttributeResourceManager: this.playerAttributeResourceManager,
+            monsterAttributeResourceManager: this.monsterAttributeResourceManager,
+            enchantManager: this.enchantManager
+        });
         this.movementManager = new MovementManager({ turnEngine: this.turnEngine });
         this.shieldManager = new ShieldManager();
         this.offscreenEngine = new OffscreenEngine(this);
@@ -105,7 +114,8 @@ export class Game extends Scene
             specialEffectManager: this.specialEffectManager,
             particleAnimationEngine: this.particleAnimationEngine,
             textAnimationEngine: this.textAnimationEngine,
-            logEngine: uiContext.logEngine
+            logEngine: uiContext.logEngine,
+            attributeDamageManager: this.attributeDamageManager
         });
         this.turnEngine.setCombatEngine(this.combatEngine);
         this.pathfindingEngine = new PathfindingEngine(this.dungeon, this.turnEngine);
@@ -125,7 +135,8 @@ export class Game extends Scene
             textAnimationEngine: this.textAnimationEngine,
             attributeResourceEngine: this.attributeResourceEngine,
             playerAttributeResourceManager: this.playerAttributeResourceManager,
-            monsterAttributeResourceManager: this.monsterAttributeResourceManager
+            monsterAttributeResourceManager: this.monsterAttributeResourceManager,
+            attributeDamageManager: this.attributeDamageManager
         });
         registerCoreSkills(this.skillEngine);
         this.playerSkillManager = new PlayerSkillManager({

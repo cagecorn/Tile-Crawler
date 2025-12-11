@@ -6,13 +6,15 @@ export class CombatEngine {
         specialEffectManager,
         particleAnimationEngine,
         textAnimationEngine,
-        logEngine
+        logEngine,
+        attributeDamageManager = null
     }) {
         this.turnEngine = turnEngine;
         this.specialEffectManager = specialEffectManager;
         this.particleAnimationEngine = particleAnimationEngine;
         this.textAnimationEngine = textAnimationEngine;
         this.logEngine = logEngine;
+        this.attributeDamageManager = attributeDamageManager;
         this.actionOrderEngine = new ActionOrderEngine();
     }
 
@@ -36,9 +38,17 @@ export class CombatEngine {
         return Promise.resolve();
     }
 
-    calculateDamage(attacker, defender) {
+    calculateDamage(attacker, defender, { attributeType = null, source = 'attack' } = {}) {
         const rawDamage = Math.max(1, attacker.stats.attack - Math.floor(defender.stats.defense / 2));
-        return rawDamage;
+        const attributeResult = this.attributeDamageManager?.calculateDamage?.({
+            attacker,
+            defender,
+            baseDamage: rawDamage,
+            attributeType,
+            source
+        });
+
+        return attributeResult?.totalDamage ?? rawDamage;
     }
 
     handleDamageFeedback(attacker, defender, damage) {
