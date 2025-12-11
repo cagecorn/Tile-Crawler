@@ -7,9 +7,8 @@ export const rendingStrikeSkill = {
     cooldown: 2,
     range: { min: 1, max: 1 },
     damageMultiplier: 1.1,
-    bleedChance: 0.45,
     bleedDuration: 3,
-    description: '근접 적에게 참격을 가해 추가 피해를 주고 확률로 출혈을 남깁니다.',
+    description: '근접 적에게 참격을 가해 추가 피해를 주고, 수집한 [피] 자원 비례 확률로 출혈을 남깁니다.',
     aiHint: {
         role: 'burst',
         priority: 'sustain'
@@ -35,7 +34,10 @@ export const rendingStrikeSkill = {
         engine.createImpactBurst(target, { color: 0xdb4646, radius: 18, duration: 220 });
         specialEffectManager?.refreshUnit?.(target);
 
-        if (Math.random() < this.bleedChance && statusEffectManager) {
+        const bloodTotal = engine.getResourceTotal?.(user, 'blood') ?? 0;
+        const bleedChance = Math.max(0, Math.min(1, bloodTotal / 100));
+
+        if (Math.random() < bleedChance && statusEffectManager) {
             const bleedPower = Math.max(1, Math.floor((user.stats?.attack ?? 0) * 0.25));
             statusEffectManager.applyStatus({
                 unit: target,

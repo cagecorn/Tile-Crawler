@@ -44,6 +44,10 @@ export class Preloader extends Scene
         this.load.image('floor-tile-1', 'images/map-tiles/floor-tile-1.png');
         this.load.image('wall-tile-1', 'images/map-tiles/wall-tile-1.png');
         this.load.image('player', 'images/unit/warrior.png');
+        this.load.image('orc-warrior', 'images/monster/orc-warrior.png');
+        this.load.image('orc-archer', 'images/monster/orc-archer.png');
+        this.load.image('orc-wizard', 'images/monster/orc-wizard.png');
+        this.load.image('minotaur-warrior', 'images/monster/Minotaur-warrior.png');
         this.load.image('zombie', 'images/monster/zombie.png');
         this.load.image('sentinel', 'images/unit/sentinel.png');
         this.load.image('medic', 'images/unit/medic.png');
