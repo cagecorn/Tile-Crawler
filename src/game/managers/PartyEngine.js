@@ -1,27 +1,23 @@
-import { MedicUnit } from '../units/Medic.js';
-import { SentinelUnit } from '../units/Sentinel.js';
-import { GunnerUnit } from '../units/Gunner.js';
-
 export class PartyEngine {
-    constructor({
-        scene,
-        player,
-        dungeon,
-        tileSize,
-        animationEngine,
-        specialEffectManager,
-        turnEngine,
-        movementManager,
-        formationManager,
-        aiManager,
-        skillAiManager,
-        classManager,
+    constructor({ 
+        scene, 
+        player, 
+        dungeon, 
+        tileSize, 
+        animationEngine, 
+        specialEffectManager, 
+        shieldManager, 
+        turnEngine, 
+        movementManager, 
+        formationManager, 
+        aiManager, 
+        skillAiManager, 
+        classManager, 
         statManager,
         logEngine,
         minimap,
         equipmentEngine,
-        skillEngine,
-        shieldManager
+        skillEngine
     }) {
         this.scene = scene;
         this.player = player;
@@ -29,6 +25,7 @@ export class PartyEngine {
         this.tileSize = tileSize;
         this.animationEngine = animationEngine;
         this.specialEffectManager = specialEffectManager;
+        this.shieldManager = shieldManager;
         this.turnEngine = turnEngine;
         this.movementManager = movementManager;
         this.formationManager = formationManager;
@@ -40,133 +37,54 @@ export class PartyEngine {
         this.minimap = minimap;
         this.equipmentEngine = equipmentEngine;
         this.skillEngine = skillEngine;
-        this.shieldManager = shieldManager;
-        this.turnEngine = turnEngine;
 
-        this.activeLimit = 6;
-        this.reserveLimit = 2;
-        this.activeMembers = [];
-        this.reserveMembers = [];
-        this.listeners = new Set();
+        this.partyMembers = []; // 용병 목록
+        this.changeListeners = [];
     }
 
-    onChange(listener) {
-        if (listener) {
-            this.listeners.add(listener);
+    onChange(callback) {
+        if (typeof callback === 'function') {
+            this.changeListeners.push(callback);
         }
     }
 
     notifyChange() {
-        this.listeners.forEach((listener) => listener?.());
+        this.changeListeners.forEach(cb => cb());
     }
 
-    planTurn(player, monsters) {
-        const living = this.activeMembers.filter((member) => member?.isAlive?.());
-        const allies = [player, ...living].filter(Boolean);
-        this.skillAiManager?.beginTurn?.();
-        living.forEach((member) => {
-            const skillAction = this.skillAiManager?.decide(member, monsters, { allies });
-            if (skillAction) {
-                this.turnEngine?.queueAction(member, skillAction);
-                return;
-            }
-
-            const action = this.aiManager?.decide(member, player, monsters, allies);
-            if (action) {
-                this.turnEngine?.queueAction(member, action);
-            }
-        });
-    }
-
+    // 용병 고용 (예: Sentinel)
     hireSentinel() {
-        if (!this.player) {
-            return null;
-        }
-
-        const spawnTile = this.formationManager?.findSpawnTileNear(this.player.tilePosition, { minDistance: 1, maxDistance: 3 });
-        if (!spawnTile) {
-            this.logEngine?.log('용병을 배치할 안전한 공간을 찾지 못했습니다.');
-            return null;
-        }
-        const stats = this.classManager?.createStatsForClass('sentinel') ?? this.statManager?.createStats({}) ?? {};
-
-        const sentinel = new SentinelUnit({
-            scene: this.scene,
-            startTile: spawnTile,
-            tileSize: this.tileSize,
-            animationEngine: this.animationEngine,
-            dungeon: this.dungeon,
-            specialEffectManager: this.specialEffectManager,
-            shieldManager: this.shieldManager,
-            turnEngine: this.turnEngine,
-            movementManager: this.movementManager,
-            stats
-        });
-
-        this.assignRandomSkills(sentinel, 'charge');
-
-        const accepted = this.addMember(sentinel);
-        if (accepted) {
-            this.logEngine?.log('센티넬이 합류했습니다. 플레이어를 지킵니다.');
-            this.notifyChange();
-        } else {
-            this.logEngine?.log('용병 자리가 부족합니다.');
-            sentinel.handleDeath();
-        }
-        return accepted;
+        this.hireMercenary('Sentinel', 'sentinel');
     }
 
     hireMedic() {
-        if (!this.player) {
-            return null;
-        }
-
-        const spawnTile = this.formationManager?.findSpawnTileNear(this.player.tilePosition, { minDistance: 1, maxDistance: 3 });
-        if (!spawnTile) {
-            this.logEngine?.log('용병을 배치할 안전한 공간을 찾지 못했습니다.');
-            return null;
-        }
-        const stats = this.classManager?.createStatsForClass('medic') ?? this.statManager?.createStats({}) ?? {};
-
-        const medic = new MedicUnit({
-            scene: this.scene,
-            startTile: spawnTile,
-            tileSize: this.tileSize,
-            animationEngine: this.animationEngine,
-            dungeon: this.dungeon,
-            specialEffectManager: this.specialEffectManager,
-            shieldManager: this.shieldManager,
-            turnEngine: this.turnEngine,
-            movementManager: this.movementManager,
-            stats
-        });
-
-        this.assignRandomSkills(medic, 'heal');
-
-        const accepted = this.addMember(medic);
-        if (accepted) {
-            this.logEngine?.log('메딕이 합류했습니다. 후방에서 회복을 지원합니다.');
-            this.notifyChange();
-        } else {
-            this.logEngine?.log('용병 자리가 부족합니다.');
-            medic.handleDeath();
-        }
-        return accepted;
+        this.hireMercenary('Medic', 'medic');
     }
 
     hireGunner() {
-        if (!this.player) {
-            return null;
+        this.hireMercenary('Gunner', 'gunner');
+    }
+
+    async hireMercenary(className, textureKey) {
+        // 이미 2명 이상이면 고용 불가 (예시 제한)
+        if (this.partyMembers.length >= 2) {
+            this.logEngine?.log('파티가 꽉 찼습니다.');
+            return;
         }
 
-        const spawnTile = this.formationManager?.findSpawnTileNear(this.player.tilePosition, { minDistance: 2, maxDistance: 4 });
+        const MercenaryClass = await this.loadMercenaryClass(className);
+        if (!MercenaryClass) {
+            return;
+        }
+
+        // 플레이어 근처 빈 타일 찾기
+        const spawnTile = this.findSpawnTileNearPlayer();
         if (!spawnTile) {
-            this.logEngine?.log('용병을 배치할 안전한 공간을 찾지 못했습니다.');
-            return null;
+            this.logEngine?.log('용병을 소환할 공간이 부족합니다.');
+            return;
         }
-        const stats = this.classManager?.createStatsForClass('gunner') ?? this.statManager?.createStats({}) ?? {};
 
-        const gunner = new GunnerUnit({
+        const mercenary = new MercenaryClass({
             scene: this.scene,
             startTile: spawnTile,
             tileSize: this.tileSize,
@@ -176,88 +94,84 @@ export class PartyEngine {
             shieldManager: this.shieldManager,
             turnEngine: this.turnEngine,
             movementManager: this.movementManager,
-            stats
+            textureKey: textureKey,
+            stats: this.classManager.getStatsForClass(className.toLowerCase()), // 간단히 클래스 매니저 활용
+            faction: 'allies',
+            name: `${className} 용병`
         });
 
-        this.assignRandomSkills(gunner, 'snipe');
-
-        const accepted = this.addMember(gunner);
-        if (accepted) {
-            this.logEngine?.log('거너가 합류했습니다. 멀찍이서 엄호 사격을 준비합니다.');
-            this.notifyChange();
-        } else {
-            this.logEngine?.log('용병 자리가 부족합니다.');
-            gunner.handleDeath();
-        }
-        return accepted;
-    }
-
-    addMember(unit) {
-        if (!unit) {
-            return false;
-        }
-
-        unit.isMercenary = true;
-
-        if (this.activeMembers.length < this.activeLimit) {
-            this.activeMembers.push(unit);
-        } else if (this.reserveMembers.length < this.reserveLimit) {
-            this.reserveMembers.push(unit);
-        } else {
-            return false;
-        }
-
-        this.equipmentEngine?.registerUnit(unit);
-        this.scene?.events.emit('unit-moved', { unit, tile: unit.tilePosition });
+        // 장비/스킬 초기화 등 추가 설정이 필요하면 여기서 수행
+        this.equipmentEngine?.registerUnit(mercenary);
+        
+        this.partyMembers.push(mercenary);
         this.notifyChange();
-        return true;
+        this.logEngine?.log(`${className} 용병을 고용했습니다!`);
+
+        // 미니맵 갱신
+        this.minimap?.updateAllyPosition(mercenary, spawnTile);
     }
 
-    assignRandomSkills(unit, preferredSkillId = null) {
-        if (!this.skillEngine || !unit) {
-            return;
-        }
-
-        const granted = new Set();
-        const available = this.skillEngine.getActiveSkills().map((skill) => skill.id);
-
-        if (preferredSkillId) {
-            this.skillEngine.grantSkillToUnit(unit, preferredSkillId);
-            granted.add(preferredSkillId);
-        }
-
-        const maxAttempts = Math.max(available.length * 2, 2);
-        let attempts = 0;
-        while (granted.size < 2 && attempts < maxAttempts && available.length > 0) {
-            const pick = available[Math.floor(Math.random() * available.length)];
-            if (this.skillEngine.grantSkillToUnit(unit, pick)) {
-                granted.add(pick);
-            }
-            attempts++;
-        }
-
-        if (granted.size < 2 && available.length > 0) {
-            const fallback = available.find((skillId) => !granted.has(skillId)) ?? available[0];
-            if (fallback) {
-                this.skillEngine.grantSkillToUnit(unit, fallback);
-            }
+    async loadMercenaryClass(className) {
+        // 동적 임포트 혹은 매핑을 통해 클래스 가져오기
+        // 여기서는 간단히 매핑으로 처리한다고 가정 (실제 프로젝트 구조에 맞춰 수정 필요)
+        try {
+            const module = await import(`../units/${className}.js`);
+            // default export가 클래스라고 가정하거나, 클래스 이름으로 export 되었는지 확인
+            return module.default || module[className];
+        } catch (e) {
+            console.error(`Failed to load unit class: ${className}`, e);
+            return null;
         }
     }
 
-    getRoster() {
-        return {
-            active: this.activeMembers.slice(),
-            reserve: this.reserveMembers.slice(),
-            activeLimit: this.activeLimit,
-            reserveLimit: this.reserveLimit
-        };
+    findSpawnTileNearPlayer() {
+        const playerPos = this.player.tilePosition;
+        const candidates = [
+            { x: playerPos.x - 1, y: playerPos.y },
+            { x: playerPos.x + 1, y: playerPos.y },
+            { x: playerPos.x, y: playerPos.y - 1 },
+            { x: playerPos.x, y: playerPos.y + 1 }
+        ];
+
+        for (const tile of candidates) {
+            if (this.isWalkable(tile) && !this.turnEngine.getUnitAt(tile)) {
+                return tile;
+            }
+        }
+        return null;
+    }
+
+    isWalkable(tile) {
+        // 간단한 벽 체크
+        if (tile.x < 0 || tile.y < 0 || tile.x >= this.dungeon.width || tile.y >= this.dungeon.height) return false;
+        return this.dungeon.tiles[tile.y][tile.x] === 1; // 1: FLOOR 가정 (TileType import 필요 시 추가)
+    }
+
+    planTurn(player, monsters) {
+        // 파티원들의 행동 결정 및 예약
+        this.partyMembers.forEach(member => {
+            if (!member.isAlive()) return;
+
+            // 1. 스킬 사용 시도
+            const skillAction = this.skillAiManager?.decideAction(member, [player, ...this.partyMembers], monsters);
+            if (skillAction) {
+                this.turnEngine.queueAction(member, skillAction);
+                return;
+            }
+
+            // 2. 이동/공격 결정 (PartyAiManager)
+            // 수정된 부분: decide() -> determineAction()
+            const action = this.aiManager?.determineAction(member, player, monsters);
+            if (action) {
+                this.turnEngine.queueAction(member, action);
+            }
+        });
     }
 
     getPartyOrder(includePlayer = true) {
-        const units = [];
-        if (includePlayer && this.player) {
-            units.push(this.player);
+        if (includePlayer) {
+            return [this.player, ...this.partyMembers];
         }
-        return units.concat(this.activeMembers, this.reserveMembers);
+        return [...this.partyMembers];
     }
 }
