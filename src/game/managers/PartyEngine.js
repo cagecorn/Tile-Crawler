@@ -1,6 +1,7 @@
 import { SentinelUnit } from '../units/Sentinel.js';
 import { MedicUnit } from '../units/Medic.js';
 import { GunnerUnit } from '../units/Gunner.js';
+import { TileType } from '../dungeon/DungeonGenerator.js';
 
 export class PartyEngine {
     constructor({ 
@@ -128,12 +129,21 @@ export class PartyEngine {
 
     findSpawnTileNearPlayer() {
         const playerPos = this.player.tilePosition;
-        const candidates = [
-            { x: playerPos.x - 1, y: playerPos.y },
-            { x: playerPos.x + 1, y: playerPos.y },
-            { x: playerPos.x, y: playerPos.y - 1 },
-            { x: playerPos.x, y: playerPos.y + 1 }
-        ];
+        
+        // 검색 범위 확장 (반경 2칸까지)
+        // 가까운 곳(거리 1)부터 먼저 찾도록 정렬된 후보군 생성
+        const candidates = [];
+        
+        // 거리 1
+        const offsets1 = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+        // 거리 2 (대각선 포함)
+        const offsets2 = [[1, 1], [1, -1], [-1, 1], [-1, -1], [0, 2], [0, -2], [2, 0], [-2, 0]];
+
+        [offsets1, offsets2].forEach(offsets => {
+            offsets.forEach(([dx, dy]) => {
+                candidates.push({ x: playerPos.x + dx, y: playerPos.y + dy });
+            });
+        });
 
         for (const tile of candidates) {
             if (this.isWalkable(tile) && !this.turnEngine.getUnitAt(tile)) {
@@ -146,8 +156,9 @@ export class PartyEngine {
     isWalkable(tile) {
         // 간단한 벽 체크
         if (tile.x < 0 || tile.y < 0 || tile.x >= this.dungeon.width || tile.y >= this.dungeon.height) return false;
-        // TileType을 import하지 않고 숫자로 체크 (1이 바닥이라고 가정)
-        return this.dungeon.tiles[tile.y][tile.x] === 1; 
+        
+        // TileType을 import하여 정확한 값 비교 (FLOOR 확인)
+        return this.dungeon.tiles[tile.y][tile.x] === TileType.FLOOR; 
     }
 
     planTurn(player, monsters) {
