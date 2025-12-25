@@ -1,3 +1,7 @@
+import { SentinelUnit } from '../units/Sentinel.js';
+import { MedicUnit } from '../units/Medic.js';
+import { GunnerUnit } from '../units/Gunner.js';
+
 export class PartyEngine {
     constructor({ 
         scene, 
@@ -65,16 +69,27 @@ export class PartyEngine {
         this.hireMercenary('Gunner', 'gunner');
     }
 
-    async hireMercenary(className, textureKey) {
+    hireMercenary(className, textureKey) {
         // 이미 2명 이상이면 고용 불가 (예시 제한)
         if (this.partyMembers.length >= 2) {
             this.logEngine?.log('파티가 꽉 찼습니다.');
             return;
         }
 
-        const MercenaryClass = await this.loadMercenaryClass(className);
-        if (!MercenaryClass) {
-            return;
+        let MercenaryClass;
+        switch (className) {
+            case 'Sentinel':
+                MercenaryClass = SentinelUnit;
+                break;
+            case 'Medic':
+                MercenaryClass = MedicUnit;
+                break;
+            case 'Gunner':
+                MercenaryClass = GunnerUnit;
+                break;
+            default:
+                this.logEngine?.log(`알 수 없는 용병 클래스: ${className}`);
+                return;
         }
 
         // 플레이어 근처 빈 타일 찾기
@@ -111,19 +126,6 @@ export class PartyEngine {
         this.minimap?.updateAllyPosition(mercenary, spawnTile);
     }
 
-    async loadMercenaryClass(className) {
-        // 동적 임포트 혹은 매핑을 통해 클래스 가져오기
-        // 여기서는 간단히 매핑으로 처리한다고 가정 (실제 프로젝트 구조에 맞춰 수정 필요)
-        try {
-            const module = await import(`../units/${className}.js`);
-            // default export가 클래스라고 가정하거나, 클래스 이름으로 export 되었는지 확인
-            return module.default || module[className];
-        } catch (e) {
-            console.error(`Failed to load unit class: ${className}`, e);
-            return null;
-        }
-    }
-
     findSpawnTileNearPlayer() {
         const playerPos = this.player.tilePosition;
         const candidates = [
@@ -144,7 +146,8 @@ export class PartyEngine {
     isWalkable(tile) {
         // 간단한 벽 체크
         if (tile.x < 0 || tile.y < 0 || tile.x >= this.dungeon.width || tile.y >= this.dungeon.height) return false;
-        return this.dungeon.tiles[tile.y][tile.x] === 1; // 1: FLOOR 가정 (TileType import 필요 시 추가)
+        // TileType을 import하지 않고 숫자로 체크 (1이 바닥이라고 가정)
+        return this.dungeon.tiles[tile.y][tile.x] === 1; 
     }
 
     planTurn(player, monsters) {
@@ -160,7 +163,6 @@ export class PartyEngine {
             }
 
             // 2. 이동/공격 결정 (PartyAiManager)
-            // 수정된 부분: decide() -> determineAction()
             const action = this.aiManager?.determineAction(member, player, monsters);
             if (action) {
                 this.turnEngine.queueAction(member, action);
