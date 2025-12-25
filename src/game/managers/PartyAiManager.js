@@ -5,204 +5,137 @@ export class PartyAiManager {
         this.turnEngine = turnEngine;
         this.formationManager = formationManager;
         this.movementManager = movementManager;
-        this.returnDistance = 6;
     }
 
-    planTurn(members = [], player, monsters = [], allies = []) {
-        const living = members.filter((member) => member?.isAlive?.());
-        living.forEach((member) => {
-            const action = this.decide(member, player, monsters, allies);
-            if (action) {
-                this.turnEngine.queueAction(member, action);
-            }
-        });
-    }
-
-    decide(member, player, monsters, allies = []) {
-        if (!member?.isAlive?.() || !player) {
+    determineAction(unit, player, monsters) {
+        if (!unit || !unit.isAlive()) {
             return null;
         }
 
-        if (member.aiRole === 'medic') {
-            return this.decideForMedic(member, player, monsters, allies);
+        // 1. 치유가 필요한 아군 찾기 (메딕 전용 로직이 있다면 여기서 처리)
+        // (스킬 AI 매니저가 따로 있다면 그쪽에서 처리하겠지만, 이동 우선순위를 정할 때 참고)
+
+        // 2. 적이 사거리 내에 있는지 확인 (공격 가능하면 공격)
+        const visibleMonsters = monsters.filter(m => this.visionEngine.hasLineOfSight(unit.tilePosition, m.tilePosition));
+        const attackTarget = this.findBestAttackTarget(unit, visibleMonsters);
+        
+        if (attackTarget) {
+            // 공격 범위 안에 적이 있다면 이동하지 않고 공격 (혹은 스킬 사용)
+            // 여기서는 이동 AI만 다루므로, 공격을 위한 '이동'이 필요 없는 경우 null 반환
+            // (실제 공격 액션은 TurnEngine이나 CombatEngine에서 처리됨)
+            return null; 
         }
 
-        if (member.aiRole === 'ranged') {
-            return this.decideForRanged(member, player, monsters);
-        }
-
-        const visibleThreats = (monsters ?? []).filter((monster) => monster?.isAlive?.() && this.canSee(member, monster));
-        visibleThreats.sort((a, b) => this.distance(member.tilePosition, a.tilePosition) - this.distance(member.tilePosition, b.tilePosition));
-
-        if (visibleThreats.length > 0) {
-            return this.approachTarget(member, visibleThreats[0].tilePosition);
-        }
-
-        const distanceToPlayer = this.distance(member.tilePosition, player.tilePosition);
-        if (distanceToPlayer > this.returnDistance) {
-            const rallyTile = this.formationManager?.findEscortTile(player.tilePosition, {
-                minDistance: 1,
-                maxDistance: 2,
-                avoidTiles: [player.tilePosition]
-            });
-            return rallyTile ? this.approachTarget(member, rallyTile) : null;
-        }
-
-        const escortTile = this.formationManager?.findEscortTile(player.tilePosition, {
-            minDistance: 2,
-            maxDistance: 4,
-            avoidTiles: [player.tilePosition]
-        });
-        return escortTile ? this.approachTarget(member, escortTile) : null;
-    }
-
-    decideForRanged(member, player, monsters = []) {
-        const preferredRange = member.getPreferredEngagementRange?.() ?? { min: 2, max: member.getAttackRange?.() ?? 2 };
-        const visibleThreats = (monsters ?? []).filter((monster) => monster?.isAlive?.() && this.canSee(member, monster));
-        visibleThreats.sort((a, b) => this.distance(member.tilePosition, a.tilePosition) - this.distance(member.tilePosition, b.tilePosition));
-
-        if (visibleThreats.length > 0) {
-            const target = visibleThreats[0];
-            const distance = this.distance(member.tilePosition, target.tilePosition);
-
-            if (distance < preferredRange.min) {
-                const retreatTile = this.findKitingTile(member, target, preferredRange);
-                if (retreatTile) {
-                    return this.approachTarget(member, retreatTile);
+        // 3. 적이 보이지만 사거리 밖이라면? -> 적에게 접근 (단, 너무 붙지 않게)
+        if (visibleMonsters.length > 0) {
+            const closestMonster = this.getClosestUnit(unit, visibleMonsters);
+            if (closestMonster) {
+                const approachPosition = this.findTacticalPosition(unit, closestMonster.tilePosition, unit.getAttackRange());
+                if (approachPosition) {
+                    return this.generateMoveAction(unit, approachPosition);
                 }
             }
+        }
 
-            if (distance > preferredRange.max) {
-                return this.approachTarget(member, target.tilePosition);
-            }
+        // 4. 전투 상황이 아니라면 -> 플레이어(대장) 따라가기
+        return this.followLeader(unit, player);
+    }
 
-            const maintainTile = this.findKitingTile(member, target, preferredRange, { preferCurrentBand: true });
-            if (maintainTile) {
-                return this.approachTarget(member, maintainTile);
-            }
-
+    followLeader(unit, leader) {
+        const distance = this.getDistance(unit.tilePosition, leader.tilePosition);
+        
+        // 이미 대장 근처(거리 2 이하)에 있으면 굳이 움직이지 않음 (과도한 겹침 방지)
+        if (distance <= 2) {
             return null;
         }
 
-        const escortTile = this.formationManager?.findEscortTile(player.tilePosition, {
-            minDistance: 3,
-            maxDistance: 5,
-            avoidTiles: [player.tilePosition]
-        });
-        return escortTile ? this.approachTarget(member, escortTile) : null;
-    }
-
-    decideForMedic(member, player, monsters = [], allies = []) {
-        const livingAllies = allies.filter((unit) => unit?.isAlive?.());
-        const nearestThreat = this.findNearest(monsters, member);
-
-        if (nearestThreat && this.distance(member.tilePosition, nearestThreat.tilePosition) <= 2) {
-            const safeTile = this.findRetreatTile(member, player, nearestThreat);
-            if (safeTile) {
-                return this.approachTarget(member, safeTile);
-            }
+        // 대장의 위치가 아니라, 대장 '주변'의 빈 타일을 목표로 설정
+        const targetTile = this.findEmptyTileNear(leader.tilePosition, unit.tilePosition);
+        
+        if (!targetTile) {
+            return null; // 갈 곳이 없으면 대기
         }
 
-        const wounded = this.findMostInjured(livingAllies);
-        if (wounded) {
-            const escortTile = this.formationManager?.findEscortTile(wounded.tilePosition, { minDistance: 1, maxDistance: 2 }) ?? null;
-            return escortTile ? this.approachTarget(member, escortTile) : null;
-        }
-
-        const preferredEscort = this.formationManager?.findEscortTile(player.tilePosition, {
-            minDistance: 1,
-            maxDistance: 3,
-            avoidTiles: [player.tilePosition]
-        }) ?? null;
-        return preferredEscort ? this.approachTarget(member, preferredEscort) : null;
+        return this.generateMoveAction(unit, targetTile);
     }
 
-    findMostInjured(allies = []) {
-        const wounded = allies
-            .filter((unit) => unit?.currentHealth < unit?.maxHealth)
-            .sort((a, b) => a.currentHealth / (a.maxHealth || 1) - b.currentHealth / (b.maxHealth || 1));
-
-        return wounded[0] ?? null;
-    }
-
-    findRetreatTile(member, player, threat) {
-        const candidates = this.formationManager?.collectRing?.(player.tilePosition, 1, 3) ?? [];
-        const safeTiles = candidates
-            .filter((tile) => this.formationManager?.isWalkable(tile))
-            .filter((tile) => !this.turnEngine?.getUnitAt(tile))
-            .filter((tile) => this.distance(tile, threat.tilePosition) > this.distance(member.tilePosition, threat.tilePosition));
-
-        safeTiles.sort((a, b) => this.distance(player.tilePosition, a) - this.distance(player.tilePosition, b));
-        return safeTiles[0] ?? null;
-    }
-
-    findNearest(targets = [], origin) {
-        const living = targets.filter((target) => target?.isAlive?.());
-        living.sort((a, b) => this.distance(origin.tilePosition, a.tilePosition) - this.distance(origin.tilePosition, b.tilePosition));
-        return living[0] ?? null;
-    }
-
-    approachTarget(member, targetTile) {
-        const path = this.pathfindingEngine?.findPath(member.tilePosition, targetTile) ?? [];
-        if (path.length <= 1) {
+    generateMoveAction(unit, targetPos) {
+        // 경로 찾기
+        const path = this.pathfindingEngine.findPath(unit.tilePosition, targetPos);
+        
+        // 경로가 없거나 너무 짧으면(제자리) 이동 안 함
+        if (!path || path.length <= 1) {
             return null;
         }
 
-        const stepBudget = this.movementManager?.getMoveAllowance(member) ?? 1;
-        const deltas = [];
-        for (let i = 1; i < path.length && deltas.length < stepBudget; i++) {
-            const prev = path[i - 1];
-            const current = path[i];
-            deltas.push({ x: current.x - prev.x, y: current.y - prev.y });
+        // 다음 한 칸만 이동 (턴제 게임이므로)
+        const nextStep = path[1]; // path[0]은 현재 위치
+        const dx = nextStep.x - unit.tilePosition.x;
+        const dy = nextStep.y - unit.tilePosition.y;
+
+        // 이동하려는 곳에 다른 유닛이 있는지 최종 확인
+        if (this.turnEngine.getUnitAt(nextStep)) {
+            return null; // 비켜줄 때까지 대기
         }
 
-        return { type: 'move', path: deltas };
+        return { type: 'move', dx, dy };
     }
 
-    canSee(member, target) {
-        const sight = member?.getSightRange?.() ?? 0;
-        return this.visionEngine?.canSee(member.tilePosition, target.tilePosition, sight) ?? false;
-    }
+    findEmptyTileNear(centerTile, myTile) {
+        // 중심 타일(대장) 주변 8방향(또는 4방향) 검사
+        const candidates = [
+            { x: centerTile.x + 1, y: centerTile.y },
+            { x: centerTile.x - 1, y: centerTile.y },
+            { x: centerTile.x, y: centerTile.y + 1 },
+            { x: centerTile.x, y: centerTile.y - 1 }
+        ];
 
-    findKitingTile(member, threat, preferredRange, { preferCurrentBand = false } = {}) {
-        const ring = this.formationManager?.collectRing?.(threat.tilePosition, preferredRange.min, preferredRange.max) ?? [];
-        const bandCandidates = ring
-            .filter((tile) => this.formationManager?.isWalkable(tile))
-            .filter((tile) => !this.turnEngine?.getUnitAt(tile))
-            .filter((tile) => {
-                const distance = this.distance(tile, threat.tilePosition);
-                const currentDistance = this.distance(member.tilePosition, threat.tilePosition);
-                return preferCurrentBand ? distance === currentDistance : distance > currentDistance;
-            })
-            .map((tile) => ({ tile, path: this.pathfindingEngine?.findPath(member.tilePosition, tile) ?? [] }))
-            .filter(({ path }) => path.length > 1);
-
-        if (bandCandidates.length > 0) {
-            bandCandidates.sort((a, b) => b.path.length - a.path.length);
-            return bandCandidates[0]?.tile ?? null;
-        }
-
-        const searchRadius = Math.max(preferredRange.max, 3);
-        const fallbackRing = this.formationManager?.collectRing?.(member.tilePosition, 1, searchRadius) ?? [];
-        const fallbackCandidates = fallbackRing
-            .filter((tile) => this.formationManager?.isWalkable(tile))
-            .filter((tile) => !this.turnEngine?.getUnitAt(tile))
-            .filter((tile) => this.distance(tile, threat.tilePosition) > this.distance(member.tilePosition, threat.tilePosition))
-            .map((tile) => ({ tile, path: this.pathfindingEngine?.findPath(member.tilePosition, tile) ?? [] }))
-            .filter(({ path }) => path.length > 1);
-
-        fallbackCandidates.sort((a, b) => {
-            const distanceDelta = this.distance(b.tile, threat.tilePosition) - this.distance(a.tile, threat.tilePosition);
-            if (distanceDelta !== 0) {
-                return distanceDelta;
-            }
-            return a.path.length - b.path.length;
+        // 1. 이동 가능한(벽이 아닌) 곳
+        // 2. 다른 유닛이 없는 곳
+        // 3. 나랑 가장 가까운 곳 순서로 정렬
+        const validTiles = candidates.filter(tile => 
+            this.pathfindingEngine.isWalkable(tile) && 
+            !this.turnEngine.getUnitAt(tile)
+        ).sort((a, b) => {
+            const distA = this.getDistance(a, myTile);
+            const distB = this.getDistance(b, myTile);
+            return distA - distB;
         });
 
-        return fallbackCandidates[0]?.tile ?? null;
+        return validTiles.length > 0 ? validTiles[0] : null;
     }
 
-    distance(a, b) {
+    findTacticalPosition(unit, targetPos, range) {
+        // 적에게 다가갈 때도 무작정 적 위치로 돌진하지 않고 사거리 끝에 걸치도록 이동
+        // (간단하게 구현: 적 주변 타일 중 내 사거리 안쪽이면서 가장 가까운 곳)
+        // 지금은 단순히 적 방향으로 이동하도록 경로 탐색에 맡김
+        return targetPos; 
+    }
+
+    findBestAttackTarget(unit, monsters) {
+        const range = unit.getAttackRange();
+        // 사거리 내에 있는 적 중 가장 약한(체력 낮은) 적 선호
+        const targets = monsters.filter(m => this.getDistance(unit.tilePosition, m.tilePosition) <= range);
+        return targets.sort((a, b) => a.currentHealth - b.currentHealth)[0];
+    }
+
+    getClosestUnit(sourceUnit, targetUnits) {
+        let closest = null;
+        let minTime = Infinity;
+
+        // 단순히 거리만 보는 게 아니라 실제 경로 거리(Path Distance)를 보는 게 정확하지만,
+        // 성능을 위해 맨해튼 거리로 근사 계산
+        targetUnits.forEach(target => {
+            const dist = this.getDistance(sourceUnit.tilePosition, target.tilePosition);
+            if (dist < minTime) {
+                minTime = dist;
+                closest = target;
+            }
+        });
+        return closest;
+    }
+
+    getDistance(a, b) {
         return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
     }
 }
