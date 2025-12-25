@@ -69,6 +69,10 @@ export class Game extends Scene
         this.tileSize = tileSize;
         this.currentFloor = 1;
 
+        // 입력 버퍼링을 위한 변수 초기화
+        this.isProcessingTurn = false;
+        this.nextQueuedAction = null;
+
         this.eventEngine = new EventEngine({ scene: this });
         this.eventEngine.bridgePhaserEvents(this.events, [
             CORE_EVENT_TOPICS.UNIT_HEALTH_CHANGED,
@@ -438,16 +442,63 @@ export class Game extends Scene
     {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.keyboard.on('keydown', (event) => {
+            // 중복 입력 방지 (키를 꾹 누르고 있을 때의 반복 입력은 무시하거나 처리 정책에 따름)
+            if (event.repeat) {
+                // 필요하다면 return; 하여 꾹 누르기 반복 입력을 막을 수 있음
+            }
+            
             const action = this.translateKeyToAction(event.code);
             if (!action) {
                 return;
             }
 
-            this.turnEngine.queueAction(this.player, action);
-            this.partyEngine?.planTurn(this.player, this.monsterManager?.getMonsters() ?? []);
-            this.monsterManager.planTurn(this.player);
-            this.turnEngine.resolveTurn();
+            this.handlePlayerInput(action);
         });
+    }
+
+    // 입력 버퍼 처리 로직
+    handlePlayerInput(action)
+    {
+        // 이미 턴을 처리 중이라면, 다음 동작으로 예약(Buffer)만 걸어둡니다.
+        if (this.isProcessingTurn) {
+            this.nextQueuedAction = action;
+            return;
+        }
+
+        // 처리 중이 아니라면 즉시 실행합니다.
+        this.processTurn(action);
+    }
+
+    // 실제 턴 실행 로직
+    async processTurn(action)
+    {
+        this.isProcessingTurn = true;
+
+        // 1. 플레이어 행동 예약
+        this.turnEngine.queueAction(this.player, action);
+
+        // 2. AI(몬스터, 파티원) 계획 수립
+        this.partyEngine?.planTurn(this.player, this.monsterManager?.getMonsters() ?? []);
+        this.monsterManager.planTurn(this.player);
+
+        // 3. 턴 해결 및 애니메이션 대기 (비동기 처리)
+        // turnEngine.resolveTurn이 애니메이션이 끝날 때까지 기다려준다고 가정합니다.
+        await this.turnEngine.resolveTurn();
+
+        // 4. 예약된 행동이 있는지 확인 (입력 버퍼 확인)
+        if (this.nextQueuedAction) {
+            const nextAction = this.nextQueuedAction;
+            this.nextQueuedAction = null;
+            
+            // 재귀 호출로 다음 행동 즉시 실행 (스택 오버플로우 방지를 위해 약간의 텀을 줄 수도 있음)
+            // 여기서는 Phaser의 delayedCall을 사용하여 안전하게 다음 프레임에 실행
+            this.time.delayedCall(0, () => {
+                this.processTurn(nextAction);
+            });
+        } else {
+            // 예약된 행동이 없다면 처리 상태 해제
+            this.isProcessingTurn = false;
+        }
     }
 
     translateKeyToAction(keyCode)
