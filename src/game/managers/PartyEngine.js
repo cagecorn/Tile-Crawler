@@ -114,7 +114,7 @@ export class PartyEngine {
             turnEngine: this.turnEngine,
             movementManager: this.movementManager,
             textureKey: textureKey,
-            stats: this.classManager.getStatsForClass(className.toLowerCase()),
+            stats: this.classManager.createStatsForClass(className.toLowerCase()),
             faction: 'allies',
             name: `${className} 용병`
         });
