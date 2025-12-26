@@ -187,7 +187,7 @@ export class PartyEngine {
         this.partyMembers.forEach(member => {
             if (!member.isAlive()) return;
 
-            const skillAction = this.skillAiManager?.decideAction(member, [player, ...this.partyMembers], monsters);
+            const skillAction = this.skillAiManager?.decide(member, monsters, { allies: [player, ...this.partyMembers] });
             if (skillAction) {
                 this.turnEngine.queueAction(member, skillAction);
                 return;
