@@ -18,6 +18,10 @@ export class PartyAiManager {
             return null;
         }
 
+        const LEASH_DISTANCE = 6;
+        const AGGRO_DISTANCE_FROM_PLAYER = 8;
+        const distToPlayer = this.getDistance(unit.tilePosition, player.tilePosition);
+
         // 1. 치유가 필요한 아군 찾기 (메딕 전용 로직이 있다면 여기서 처리)
         // (스킬 AI 매니저가 따로 있다면 그쪽에서 처리하겠지만, 이동 우선순위를 정할 때 참고)
 
@@ -32,9 +36,20 @@ export class PartyAiManager {
             return null; 
         }
 
-        // 3. 적이 보이지만 사거리 밖이라면? -> 적에게 접근 (단, 너무 붙지 않게)
+        // 3. 플레이어와 너무 멀어졌다면 강제로 복귀 (단, 적과 인접해있지 않다면)
+        if (distToPlayer > LEASH_DISTANCE) {
+            return this.followLeader(unit, player);
+        }
+
+        // 4. 적이 보이지만 사거리 밖이라면? -> 적에게 접근 (단, 플레이어 근처의 적만)
         if (visibleMonsters.length > 0) {
-            const closestMonster = this.getClosestUnit(unit, visibleMonsters);
+            // 플레이어 근처의 적만 필터링 (멀리 있는 적에게 돌진 방지)
+            const engageableMonsters = visibleMonsters.filter(m => {
+                const distPlayerToMonster = this.getDistance(player.tilePosition, m.tilePosition);
+                return distPlayerToMonster <= AGGRO_DISTANCE_FROM_PLAYER;
+            });
+
+            const closestMonster = this.getClosestUnit(unit, engageableMonsters);
             if (closestMonster) {
                 const approachPosition = this.findTacticalPosition(unit, closestMonster.tilePosition, unit.getAttackRange());
                 if (approachPosition) {
@@ -43,7 +58,7 @@ export class PartyAiManager {
             }
         }
 
-        // 4. 전투 상황이 아니라면 -> 플레이어(대장) 따라가기
+        // 5. 전투 상황이 아니라면 -> 플레이어(대장) 따라가기
         return this.followLeader(unit, player);
     }
 
