@@ -22,7 +22,7 @@ export class PartyAiManager {
         // (스킬 AI 매니저가 따로 있다면 그쪽에서 처리하겠지만, 이동 우선순위를 정할 때 참고)
 
         // 2. 적이 사거리 내에 있는지 확인 (공격 가능하면 공격)
-        const visibleMonsters = monsters.filter(m => this.visionEngine.hasLineOfSight(unit.tilePosition, m.tilePosition));
+        const visibleMonsters = monsters.filter(m => this.visionEngine.lineOfSightClear(unit.tilePosition, m.tilePosition));
         const attackTarget = this.findBestAttackTarget(unit, visibleMonsters);
         
         if (attackTarget) {
