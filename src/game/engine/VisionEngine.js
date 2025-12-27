@@ -5,6 +5,10 @@ export class VisionEngine {
         this.dungeon = dungeon;
     }
 
+    setDungeon(dungeon) {
+        this.dungeon = dungeon;
+    }
+
     canSee(source, target, range) {
         const dx = target.x - source.x;
         const dy = target.y - source.y;
@@ -63,7 +67,9 @@ export class VisionEngine {
         if (!withinBounds) {
             return true;
         }
-        return this.dungeon.tiles[point.y][point.x] !== TileType.FLOOR;
+        // Stairs are not blocking
+        const tile = this.dungeon.tiles[point.y][point.x];
+        return tile !== TileType.FLOOR && tile !== TileType.STAIRS_DOWN;
     }
 }
 
