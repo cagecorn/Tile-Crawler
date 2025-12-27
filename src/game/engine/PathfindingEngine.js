@@ -6,6 +6,10 @@ export class PathfindingEngine {
         this.turnEngine = turnEngine;
     }
 
+    setDungeon(dungeon) {
+        this.dungeon = dungeon;
+    }
+
     findPath(start, goal) {
         const openSet = new Map();
         const closedSet = new Set();
@@ -72,6 +76,13 @@ export class PathfindingEngine {
 
     inBounds(tile) {
         return tile.x >= 0 && tile.x < this.dungeon.width && tile.y >= 0 && tile.y < this.dungeon.height;
+    }
+
+    isWalkable(tile) {
+        // Also allow STAIRS_DOWN as walkable
+        if (!this.inBounds(tile)) return false;
+        const type = this.dungeon.tiles[tile.y]?.[tile.x];
+        return type === TileType.FLOOR || type === TileType.STAIRS_DOWN;
     }
 
     heuristic(a, b) {

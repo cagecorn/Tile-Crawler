@@ -27,6 +27,7 @@ export class DungeonGenerator {
         const rooms = this.createRooms(grid);
         this.connectRooms(grid, rooms);
         this.addWanderingTunnels(grid);
+        this.placeStairs(grid, rooms);
 
         return {
             tiles: grid,
@@ -214,6 +215,18 @@ export class DungeonGenerator {
         }
     }
 
+    placeStairs(grid, rooms) {
+        if (rooms.length < 2) {
+            return;
+        }
+        // Spawn is usually at rooms[0], so we pick the furthest room or just a random one from the rest
+        // Simple approach: pick random from remaining rooms
+        const roomIndex = randomInRange(1, rooms.length - 1);
+        const room = rooms[roomIndex];
+        const center = this.roomCenter(room);
+        grid[center.y][center.x] = TileType.STAIRS_DOWN;
+    }
+
     randomDirection() {
         const directions = [
             { x: 1, y: 0 },
@@ -239,5 +252,6 @@ export class DungeonGenerator {
 
 export const TileType = {
     WALL: TILE_WALL,
-    FLOOR: TILE_FLOOR
+    FLOOR: TILE_FLOOR,
+    STAIRS_DOWN: 'stairs_down'
 };

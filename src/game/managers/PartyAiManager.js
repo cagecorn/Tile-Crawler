@@ -7,6 +7,12 @@ export class PartyAiManager {
         this.movementManager = movementManager;
     }
 
+    updateDungeon(dungeon) {
+        // PathfindingEngine and VisionEngine are usually updated externally (e.g. by Game.js),
+        // but if PartyAiManager holds references dependent on dungeon, update them here.
+        // Currently it delegates to engines, so nothing critical to do unless we cache dungeon.
+    }
+
     determineAction(unit, player, monsters) {
         if (!unit || !unit.isAlive()) {
             return null;

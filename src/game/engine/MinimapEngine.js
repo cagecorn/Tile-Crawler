@@ -201,4 +201,9 @@ export class MinimapEngine {
         const y = tilePosition.y * this.scale + this.scale / 2;
         marker.style.transform = `translate(${x}px, ${y}px)`;
     }
+
+    setDungeon(dungeon) {
+        this.dungeon = dungeon;
+        this.setupViewport();
+    }
 }

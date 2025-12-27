@@ -206,4 +206,25 @@ export class PartyEngine {
         }
         return [...this.partyMembers];
     }
+
+    setDungeon(dungeon) {
+        this.dungeon = dungeon;
+        this.partyMembers.forEach(member => {
+            member.dungeon = dungeon;
+        });
+        this.formationManager.dungeon = dungeon;
+        this.aiManager.updateDungeon(dungeon);
+    }
+
+    repositionParty(playerTile) {
+        // Simple logic: place members around the player
+        this.partyMembers.forEach(member => {
+            if (!member.isAlive()) return;
+            const spawnTile = this.findSpawnTileNearPlayer();
+            if (spawnTile) {
+                member.setPosition(spawnTile.x, spawnTile.y);
+                this.minimap?.updateAllyPosition(member, spawnTile);
+            }
+        });
+    }
 }

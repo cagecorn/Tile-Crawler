@@ -40,14 +40,17 @@ export class MonsterManager {
         this.behaviorTree = new MonsterBehaviorTree(this.pathfindingEngine, this.visionEngine, this.turnEngine, this.skillEngine);
     }
 
-    spawnMonsters() {
+    spawnMonsters(floor = 1) {
         const rooms = this.dungeon.rooms.slice(1);
+        // Scale monster counts slightly with floor
+        const baseCount = 3 + Math.floor(floor / 2);
+
         const spawnPlan = [
-            { factory: () => this.createOrcWarrior(rooms), count: 4 },
-            { factory: () => this.createOrcArcher(rooms), count: 3 },
-            { factory: () => this.createOrcWizard(rooms), count: 3 },
-            { factory: () => this.createMinotaurWarrior(rooms), count: 2 },
-            { factory: () => this.createZombie(rooms), count: 4 }
+            { factory: () => this.createOrcWarrior(rooms, floor), count: Math.max(2, Math.floor(baseCount * 0.8)) },
+            { factory: () => this.createOrcArcher(rooms, floor), count: Math.max(2, Math.floor(baseCount * 0.6)) },
+            { factory: () => this.createOrcWizard(rooms, floor), count: Math.max(1, Math.floor(baseCount * 0.4)) },
+            { factory: () => this.createMinotaurWarrior(rooms, floor), count: Math.max(1, Math.floor(baseCount * 0.3)) },
+            { factory: () => this.createZombie(rooms, floor), count: Math.max(2, Math.floor(baseCount * 0.7)) }
         ];
 
         spawnPlan.forEach(({ factory, count }) => {
@@ -58,6 +61,19 @@ export class MonsterManager {
                 }
             }
         });
+    }
+
+    clearMonsters() {
+        this.monsters.forEach(monster => {
+            monster.destroy();
+            this.turnEngine.removeUnit(monster);
+        });
+        this.monsters = [];
+    }
+
+    setDungeon(dungeon) {
+        this.dungeon = dungeon;
+        this.behaviorTree = new MonsterBehaviorTree(this.pathfindingEngine, this.visionEngine, this.turnEngine, this.skillEngine);
     }
 
     enableHoverTab(monster) {
@@ -110,12 +126,25 @@ export class MonsterManager {
         return tile;
     }
 
-    createOrcWarrior(rooms) {
+    getScaledStats(baseStats, floor) {
+        const scale = 1 + (floor - 1) * 0.15; // 15% increase per floor
+        return {
+            ...baseStats,
+            health: Math.floor(baseStats.health * scale),
+            attack: Math.floor(baseStats.attack * scale),
+            defense: Math.floor(baseStats.defense * scale),
+            magicAttack: Math.floor((baseStats.magicAttack || 0) * scale),
+            magicDefense: Math.floor((baseStats.magicDefense || 0) * scale),
+            experience: Math.floor(10 * scale) // Give more XP too
+        };
+    }
+
+    createOrcWarrior(rooms, floor = 1) {
         const tile = this.pickSpawnTile(rooms);
         if (!tile) {
             return null;
         }
-        const stats = this.statManager.createStats({
+        const baseStats = {
             health: 180,
             mana: 50,
             attack: 18,
@@ -126,7 +155,8 @@ export class MonsterManager {
             attackRange: 1,
             healthRegen: 2,
             manaRegen: 1
-        });
+        };
+        const stats = this.statManager.createStats(this.getScaledStats(baseStats, floor));
 
         return new OrcWarriorUnit({
             scene: this.scene,
@@ -142,12 +172,12 @@ export class MonsterManager {
         });
     }
 
-    createOrcArcher(rooms) {
+    createOrcArcher(rooms, floor = 1) {
         const tile = this.pickSpawnTile(rooms);
         if (!tile) {
             return null;
         }
-        const stats = this.statManager.createStats({
+        const baseStats = {
             health: 130,
             mana: 70,
             attack: 16,
@@ -158,7 +188,8 @@ export class MonsterManager {
             attackRange: 7,
             healthRegen: 1,
             manaRegen: 2
-        });
+        };
+        const stats = this.statManager.createStats(this.getScaledStats(baseStats, floor));
 
         return new OrcArcherUnit({
             scene: this.scene,
@@ -174,12 +205,12 @@ export class MonsterManager {
         });
     }
 
-    createOrcWizard(rooms) {
+    createOrcWizard(rooms, floor = 1) {
         const tile = this.pickSpawnTile(rooms);
         if (!tile) {
             return null;
         }
-        const stats = this.statManager.createStats({
+        const baseStats = {
             health: 120,
             mana: 90,
             attack: 10,
@@ -192,7 +223,8 @@ export class MonsterManager {
             attackRange: 6,
             healthRegen: 1,
             manaRegen: 3
-        });
+        };
+        const stats = this.statManager.createStats(this.getScaledStats(baseStats, floor));
 
         return new OrcWizardUnit({
             scene: this.scene,
@@ -208,12 +240,12 @@ export class MonsterManager {
         });
     }
 
-    createMinotaurWarrior(rooms) {
+    createMinotaurWarrior(rooms, floor = 1) {
         const tile = this.pickSpawnTile(rooms);
         if (!tile) {
             return null;
         }
-        const stats = this.statManager.createStats({
+        const baseStats = {
             health: 230,
             mana: 70,
             attack: 20,
@@ -224,7 +256,8 @@ export class MonsterManager {
             attackRange: 1,
             healthRegen: 3,
             manaRegen: 2
-        });
+        };
+        const stats = this.statManager.createStats(this.getScaledStats(baseStats, floor));
 
         return new MinotaurWarriorUnit({
             scene: this.scene,
@@ -240,12 +273,12 @@ export class MonsterManager {
         });
     }
 
-    createZombie(rooms) {
+    createZombie(rooms, floor = 1) {
         const tile = this.pickSpawnTile(rooms);
         if (!tile) {
             return null;
         }
-        const stats = this.statManager.createStats({
+        const baseStats = {
             health: 110,
             attack: 11,
             defense: 6,
@@ -255,7 +288,8 @@ export class MonsterManager {
             attackRange: 1,
             healthRegen: 1,
             manaRegen: 0
-        });
+        };
+        const stats = this.statManager.createStats(this.getScaledStats(baseStats, floor));
 
         const zombie = new ZombieUnit({
             scene: this.scene,

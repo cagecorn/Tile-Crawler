@@ -199,19 +199,8 @@ export class Game extends Scene
         this.createMinimap();
         this.initializeStatusPanels();
 
-        const mapLayer = this.add.layer();
-        for (let y = 0; y < dungeon.height; y++) {
-            for (let x = 0; x < dungeon.width; x++) {
-                const tile = dungeon.tiles[y][x];
-                const textureKey = tile === TileType.FLOOR ? 'floor-tile-1' : 'wall-tile-1';
-                const image = this.add.image(
-                    x * tileSize + tileSize / 2,
-                    y * tileSize + tileSize / 2,
-                    textureKey
-                );
-                mapLayer.add(image);
-            }
-        }
+        this.mapLayer = this.add.layer();
+        this.renderMap();
 
         const worldWidth = dungeon.width * tileSize;
         const worldHeight = dungeon.height * tileSize;
@@ -531,6 +520,34 @@ export class Game extends Scene
         }
     }
 
+    renderMap() {
+        this.mapLayer.removeAll();
+        for (let y = 0; y < this.dungeon.height; y++) {
+            for (let x = 0; x < this.dungeon.width; x++) {
+                const tile = this.dungeon.tiles[y][x];
+                let textureKey = 'wall-tile-1';
+                let tint = 0xffffff;
+
+                if (tile === TileType.FLOOR) {
+                    textureKey = 'floor-tile-1';
+                } else if (tile === TileType.STAIRS_DOWN) {
+                    textureKey = 'floor-tile-1';
+                    tint = 0x00ff00; // Green tint for stairs
+                }
+
+                const image = this.add.image(
+                    x * this.tileSize + this.tileSize / 2,
+                    y * this.tileSize + this.tileSize / 2,
+                    textureKey
+                );
+                if (tint !== 0xffffff) {
+                    image.setTint(tint);
+                }
+                this.mapLayer.add(image);
+            }
+        }
+    }
+
     createMinimap()
     {
         if (!uiContext.minimapViewport) {
@@ -552,6 +569,7 @@ export class Game extends Scene
         this.events.on('unit-moved', ({ unit, tile }) => {
             if (unit === this.player) {
                 this.minimap.updatePlayerPosition(tile);
+                this.checkStairs(tile);
                 return;
             }
 
@@ -689,11 +707,120 @@ export class Game extends Scene
 
     handleUnitDeathLoot(unit)
     {
+        if (unit === this.player) {
+            this.handlePlayerDeath();
+            return;
+        }
+
         if (!unit || unit.faction === 'allies') {
             return;
         }
         const drop = this.monsterEquipmentManager?.createDrop?.(unit)
             ?? this.randomTableManager?.roll('core-drops');
         this.safeAddToInventory(drop, '[전리품]');
+    }
+
+    handlePlayerDeath()
+    {
+        uiContext.logEngine?.log?.('플레이어가 사망했습니다!');
+        this.time.delayedCall(1500, () => {
+            this.scene.start('GameOver');
+        });
+    }
+
+    checkStairs(tile)
+    {
+        const tileType = this.dungeon.tiles[tile.y][tile.x];
+        if (tileType === TileType.STAIRS_DOWN) {
+            uiContext.logEngine?.log?.('계단을 발견했습니다! (내려가려면 스페이스바)');
+        }
+    }
+
+    handlePlayerInput(action)
+    {
+        if (action.type === 'interact') {
+            const playerTile = this.player.tilePosition;
+            const tileType = this.dungeon.tiles[playerTile.y][playerTile.x];
+            if (tileType === TileType.STAIRS_DOWN) {
+                this.descendFloor();
+                return;
+            }
+        }
+
+        // 이미 턴을 처리 중이라면, 다음 동작으로 예약(Buffer)만 걸어둡니다.
+        if (this.isProcessingTurn) {
+            this.nextQueuedAction = action;
+            return;
+        }
+
+        // 처리 중이 아니라면 즉시 실행합니다.
+        this.processTurn(action);
+    }
+
+    descendFloor()
+    {
+        this.currentFloor++;
+        uiContext.logEngine?.log?.(`지하 ${this.currentFloor}층으로 내려갑니다...`);
+
+        // Regenerate Dungeon
+        const generator = new DungeonGenerator(measurementManager);
+        const dungeon = generator.generate();
+        this.dungeon = dungeon;
+
+        // Cleanup old entities
+        this.mapLayer.removeAll();
+        this.renderMap();
+
+        // Reposition Player
+        const spawnTile = this.pickSpawnTile();
+        this.player.setPosition(spawnTile.x, spawnTile.y);
+
+        // Reset Camera
+        const worldWidth = dungeon.width * this.tileSize;
+        const worldHeight = dungeon.height * this.tileSize;
+        this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+
+        // Update Systems
+        this.pathfindingEngine.setDungeon(dungeon);
+        this.visionEngine.setDungeon(dungeon);
+        this.minimap.setDungeon(dungeon);
+        this.minimap.updatePlayerPosition(spawnTile);
+
+        // Respawn Monsters
+        // Clear old monsters
+        this.monsterManager.clearMonsters();
+        this.monsterManager.setDungeon(dungeon);
+        this.monsterManager.spawnMonsters(this.currentFloor);
+
+        // Update Party
+        this.partyEngine.setDungeon(dungeon);
+        this.partyEngine.repositionParty(spawnTile);
+
+        // Reset turn state
+        this.isProcessingTurn = false;
+        this.nextQueuedAction = null;
+    }
+
+    translateKeyToAction(keyCode)
+    {
+        if (keyCode === 'Space' || keyCode === 'Enter') {
+            return { type: 'interact' };
+        }
+        const skillAction = this.playerSkillMechanismManager?.translateKeyToSkill(keyCode);
+        if (skillAction) {
+            return skillAction;
+        }
+        switch (keyCode) {
+        case 'ArrowLeft':
+            return { type: 'move', dx: -1, dy: 0 };
+        case 'ArrowRight':
+            return { type: 'move', dx: 1, dy: 0 };
+        case 'ArrowUp':
+            return { type: 'move', dx: 0, dy: -1 };
+        case 'ArrowDown':
+            return { type: 'move', dx: 0, dy: 1 };
+        default:
+            return null;
+        }
     }
 }
