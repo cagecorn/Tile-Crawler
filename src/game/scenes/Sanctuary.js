@@ -9,6 +9,7 @@ export class Sanctuary extends Scene {
     }
 
     create() {
+        this.resourceManager = this.registry.get('resourceManager');
         this.authorManager = new AuthorManager();
         this.itemEngine = createDefaultItemEngine();
 
@@ -20,11 +21,43 @@ export class Sanctuary extends Scene {
         }
         this.inventoryEngine = this.registry.get('inventory');
 
-        this.add.text(400, 50, '작가의 성소', { fontSize: '32px', color: '#ffffff', fontFamily: 'Arial' }).setOrigin(0.5);
+        // Background
+        this.add.rectangle(0, 0, 1024, 768, 0x110011).setOrigin(0);
+        this.add.text(512, 50, '작가의 성소 (Micro World)', { fontSize: '32px', color: '#e0b0ff', fontFamily: 'Arial' }).setOrigin(0.5);
 
+        this.createResourceDisplay();
+        this.createNavigation();
         this.createAuthorList();
         this.createInventoryView();
+    }
 
+    createResourceDisplay() {
+        this.resourceText = this.add.text(50, 50, '', { fontSize: '20px', color: '#e0b0ff', fontFamily: 'Arial' });
+        this.updateResourceDisplay();
+        if (this.resourceManager) {
+            this.resourceManager.onChange(() => this.updateResourceDisplay());
+        }
+    }
+
+    updateResourceDisplay() {
+        if (!this.resourceManager) return;
+        const ink = this.resourceManager.getResource('ink');
+        const letters = this.resourceManager.getResource('letters');
+        const blood = this.resourceManager.getResource('blood');
+        this.resourceText.setText(`Ink: ${ink} | Letters: ${letters} | Blood: ${blood}`);
+    }
+
+    createNavigation() {
+        // To Territory
+        const territoryBtn = this.add.container(900, 600);
+        const tBg = this.add.rectangle(0, 0, 200, 60, 0x8B4513).setOrigin(0.5)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => this.scene.start('Territory'));
+
+        const tText = this.add.text(0, 0, '영지로 이동\n(Macro World)', { fontSize: '18px', color: '#ffffff', align: 'center', fontFamily: 'Arial' }).setOrigin(0.5);
+
+        territoryBtn.add([tBg, tText]);
+        this.add.existing(territoryBtn);
     }
 
     createAuthorList() {
@@ -38,7 +71,8 @@ export class Sanctuary extends Scene {
             const name = this.add.text(0, -20, author.name, { fontSize: '20px', color: '#ffcc00', fontFamily: 'Arial' }).setOrigin(0.5);
             const desc = this.add.text(0, 10, author.description, { fontSize: '14px', color: '#aaaaaa', wordWrap: { width: 280 }, fontFamily: 'Arial' }).setOrigin(0.5);
 
-            const btn = this.add.text(0, 35, '[ 집필 의뢰 ]', { fontSize: '16px', color: '#00ff00', backgroundColor: '#000', fontFamily: 'Arial' })
+            const costText = this.add.text(0, 35, '비용: 잉크 10, 글자 5', { fontSize: '12px', color: '#888888', fontFamily: 'Arial' }).setOrigin(0.5);
+            const btn = this.add.text(0, 60, '[ 집필 의뢰 ]', { fontSize: '16px', color: '#00ff00', backgroundColor: '#000', fontFamily: 'Arial' })
                 .setPadding(5)
                 .setInteractive({ useHandCursor: true })
                 .setOrigin(0.5);
@@ -46,6 +80,8 @@ export class Sanctuary extends Scene {
             btn.on('pointerdown', () => {
                 this.requestBook(author.id);
             });
+
+            container.add([costText]);
 
             container.add([bg, name, desc, btn]);
             this.add.existing(container);
@@ -86,6 +122,18 @@ export class Sanctuary extends Scene {
     }
 
     requestBook(authorId) {
+        const inkCost = 10;
+        const lettersCost = 5;
+
+        if (this.resourceManager) {
+            if (!this.resourceManager.hasResource('ink', inkCost) || !this.resourceManager.hasResource('letters', lettersCost)) {
+                this.showFeedback('자원이 부족합니다! (잉크 10, 글자 5 필요)', '#ff0000');
+                return;
+            }
+            this.resourceManager.removeResource('ink', inkCost);
+            this.resourceManager.removeResource('letters', lettersCost);
+        }
+
         const bookData = this.authorManager.writeBook(authorId);
         if (bookData) {
             // Create item instance
@@ -93,21 +141,25 @@ export class Sanctuary extends Scene {
                 name: bookData.title,
                 description: bookData.description,
                 dungeonConfig: bookData.dungeonConfig,
-                theme: bookData.theme
+                theme: bookData.theme,
+                type: 'book' // Explicitly set type
             });
 
             this.inventoryEngine.addItem(bookItem);
             this.refreshInventory();
 
-            // Simple feedback
-            const feedback = this.add.text(400, 550, `"${bookData.title}" 집필 완료!`, { fontSize: '20px', color: '#ffff00', fontFamily: 'Arial' }).setOrigin(0.5);
-            this.tweens.add({
-                targets: feedback,
-                alpha: 0,
-                duration: 2000,
-                onComplete: () => feedback.destroy()
-            });
+            this.showFeedback(`"${bookData.title}" 집필 완료!`, '#ffff00');
         }
+    }
+
+    showFeedback(message, color) {
+        const feedback = this.add.text(512, 700, message, { fontSize: '20px', color: color, fontFamily: 'Arial' }).setOrigin(0.5);
+        this.tweens.add({
+            targets: feedback,
+            alpha: 0,
+            duration: 2000,
+            onComplete: () => feedback.destroy()
+        });
     }
 
     enterBook(bookItem) {
