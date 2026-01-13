@@ -15,7 +15,7 @@ export class ItemEngine {
         collection.set(definition.id, definition);
     }
 
-    createInstance(id) {
+    createInstance(id, extraData = {}) {
         const definition = this.getItemDefinition(id);
         if (!definition) {
             return null;
@@ -29,7 +29,8 @@ export class ItemEngine {
             type: definition.type,
             icon: definition.icon,
             stats: definition.stats ?? {},
-            description: definition.description ?? ''
+            description: definition.description ?? '',
+            ...extraData
         };
     }
 
@@ -78,6 +79,16 @@ export function createDefaultItemEngine() {
             magicDefense: 4,
             movePoints: -1
         }
+    });
+
+    engine.registerItem({
+        id: 'mysterious-book',
+        name: '신비한 책',
+        type: 'book',
+        slot: 'none',
+        icon: 'assets/images/item/misc/book.png', // Placeholder
+        description: '작가의 영혼이 담긴 책. 읽으면 새로운 세계가 열린다.',
+        stats: {}
     });
 
     return engine;
