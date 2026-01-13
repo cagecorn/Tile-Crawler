@@ -54,6 +54,10 @@ export class InventoryEngine {
         return this.slots[index];
     }
 
+    getItems() {
+        return this.slots;
+    }
+
     onChange(listener) {
         if (listener) {
             this.listeners.add(listener);

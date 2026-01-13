@@ -69,6 +69,6 @@ export class Preloader extends Scene
         //  For example, you can define global animations here, so we can use them in other scenes.
 
         //  Jump straight into the dungeon view.
-        this.scene.start('Game');
+        this.scene.start('Sanctuary');
     }
 }

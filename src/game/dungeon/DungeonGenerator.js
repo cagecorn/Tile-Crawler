@@ -21,25 +21,27 @@ export class DungeonGenerator {
         this.measurements = units;
     }
 
-    generate() {
-        const { width, height } = this.measurements.getMapSize();
+    generate(config = {}) {
+        const width = config.width ?? this.measurements.getMapSize().width;
+        const height = config.height ?? this.measurements.getMapSize().height;
         const grid = Array.from({ length: height }, () => Array.from({ length: width }, () => TILE_WALL));
-        const rooms = this.createRooms(grid);
-        this.connectRooms(grid, rooms);
-        this.addWanderingTunnels(grid);
+        const rooms = this.createRooms(grid, config.roomConfig);
+        this.connectRooms(grid, rooms, config.corridorWidth);
+        this.addWanderingTunnels(grid, config.corridorWidth);
         this.placeStairs(grid, rooms);
 
         return {
             tiles: grid,
             rooms,
             width,
-            height
+            height,
+            config // Store config for reference (e.g. biomes)
         };
     }
 
-    createRooms(grid) {
+    createRooms(grid, overrideRoomConfig) {
         const rooms = [];
-        const roomConfig = this.measurements.getRoomConfig();
+        const roomConfig = overrideRoomConfig ?? this.measurements.getRoomConfig();
 
         for (let i = 0; i < roomConfig.maxRooms; i++) {
             const roomWidth = randomInRange(roomConfig.minWidth, roomConfig.maxWidth);
@@ -130,8 +132,24 @@ export class DungeonGenerator {
         this.fillArea(grid, room.x, room.y, room.width, room.height, TILE_FLOOR);
     }
 
-    carveCorridor(grid, roomA, roomB) {
-        const corridorWidth = this.measurements.getCorridorWidth();
+    connectRooms(grid, rooms, corridorWidthOverride) {
+        if (rooms.length === 0) {
+            return;
+        }
+
+        const graphEdges = this.buildCompleteGraph(rooms);
+        const mst = this.primMST(graphEdges, rooms.length);
+        const bonusEdges = graphEdges.filter(() => Math.random() < 0.3);
+
+        [...mst, ...bonusEdges].forEach((edge) => {
+            const roomA = rooms[edge[0]];
+            const roomB = rooms[edge[1]];
+            this.carveCorridor(grid, roomA, roomB, corridorWidthOverride);
+        });
+    }
+
+    carveCorridor(grid, roomA, roomB, corridorWidthOverride) {
+        const corridorWidth = corridorWidthOverride ?? this.measurements.getCorridorWidth();
         const centerA = this.roomCenter(roomA);
         const centerB = this.roomCenter(roomB);
         const horizontalFirst = Math.random() > 0.5;
@@ -195,8 +213,9 @@ export class DungeonGenerator {
         }
     }
 
-    addWanderingTunnels(grid) {
+    addWanderingTunnels(grid, corridorWidthOverride) {
         const spurCount = 12;
+        const width = corridorWidthOverride ?? this.measurements.getCorridorWidth();
         for (let i = 0; i < spurCount; i++) {
             const start = this.randomFloorCell(grid);
             if (!start) {
@@ -209,7 +228,7 @@ export class DungeonGenerator {
             for (let step = 0; step < steps; step++) {
                 const direction = this.randomDirection();
                 const next = { x: current.x + direction.x * randomInRange(2, 4), y: current.y + direction.y * randomInRange(2, 4) };
-                this.carveSegment(grid, current, next, this.measurements.getCorridorWidth());
+                this.carveSegment(grid, current, next, width);
                 current = next;
             }
         }

@@ -59,15 +59,20 @@ export class Game extends Scene
         super('Game');
     }
 
-    create ()
+    create (data)
     {
+        const dungeonConfig = data?.dungeonConfig || {};
+        const bookTheme = data?.bookTheme || 'default';
+
         const generator = new DungeonGenerator(measurementManager);
-        const dungeon = generator.generate();
+        const dungeon = generator.generate(dungeonConfig);
         const tileSize = measurementManager.getTileSize();
         const cameraConfig = measurementManager.getCameraConfig();
         this.dungeon = dungeon;
         this.tileSize = tileSize;
         this.currentFloor = 1;
+        this.dungeonConfig = dungeonConfig; // Save for regeneration
+        this.bookTheme = bookTheme;
 
         // 입력 버퍼링을 위한 변수 초기화
         this.isProcessingTurn = false;
@@ -522,11 +527,17 @@ export class Game extends Scene
 
     renderMap() {
         this.mapLayer.removeAll();
+
+        let themeTint = 0xffffff;
+        if (this.bookTheme === 'dark') themeTint = 0x8888aa;
+        else if (this.bookTheme === 'military') themeTint = 0xaa8888;
+        else if (this.bookTheme === 'dream') themeTint = 0xaa88cc;
+
         for (let y = 0; y < this.dungeon.height; y++) {
             for (let x = 0; x < this.dungeon.width; x++) {
                 const tile = this.dungeon.tiles[y][x];
                 let textureKey = 'wall-tile-1';
-                let tint = 0xffffff;
+                let tint = themeTint;
 
                 if (tile === TileType.FLOOR) {
                     textureKey = 'floor-tile-1';
@@ -540,9 +551,19 @@ export class Game extends Scene
                     y * this.tileSize + this.tileSize / 2,
                     textureKey
                 );
-                if (tint !== 0xffffff) {
+
+                // Only apply tint if not special (like stairs)
+                if (tint === themeTint) {
+                     // Add slight variation per tile for flavor
+                     if (Math.random() > 0.9) {
+                        image.setTint(tint - 0x111111);
+                     } else {
+                        image.setTint(tint);
+                     }
+                } else {
                     image.setTint(tint);
                 }
+
                 this.mapLayer.add(image);
             }
         }
@@ -764,7 +785,8 @@ export class Game extends Scene
 
         // Regenerate Dungeon
         const generator = new DungeonGenerator(measurementManager);
-        const dungeon = generator.generate();
+        // Use stored config for next floor
+        const dungeon = generator.generate(this.dungeonConfig || {});
         this.dungeon = dungeon;
 
         // Cleanup old entities
